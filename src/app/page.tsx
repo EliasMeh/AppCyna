@@ -1,12 +1,15 @@
+import React from 'react';
 import Image from "next/image";
-import ProductCard from "./components/ProductCard";
-import UsersPage from "./users/page";
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
+import Header from './communs/Header';
+import Footer from './communs/Footer';
+import ProductCard from './components/ProductCard';
+import Link from 'next/link';
+import { Button } from '@/components/ui/button';
 
 export default function Home() {
   return (
     <main>
+      <Header />
       <div>
         <h1>Hello World</h1>
         <ProductCard />
@@ -19,6 +22,7 @@ export default function Home() {
           <Button variant="outline">Click Me</Button>
         </div>
       </div>
+      <Footer />
     </main>
   );
 }
