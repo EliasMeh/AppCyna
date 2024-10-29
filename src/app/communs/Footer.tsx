@@ -6,12 +6,12 @@ import Image from 'next/image';
 export default function Footer() {
   return (
     <footer className="p-4 bg-gray-800 text-white rounded">
-      <h1>Footer start</h1>
+
       <div className="flex space-x-4 mt-4 items-center">
         <Link href="/cgu" passHref>
           <Button>CGU</Button>
         </Link>
-        <Link href="/mentions" passHref>
+        <Link href="/mentionleg" passHref>
           <Button>Mentions Légales</Button>
         </Link>
         <Link href="/contact" passHref>
@@ -34,7 +34,6 @@ export default function Footer() {
           />
         </Link>
       </div>
-      <h1>Footer end</h1>
     </footer>
   );
 }
