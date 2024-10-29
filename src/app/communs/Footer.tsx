@@ -17,7 +17,7 @@ export default function Footer() {
         <Link href="/contact" passHref>
           <Button>Contact</Button>
         </Link>
-        <Link href="https://www.linkedin.com" target="_blank" rel="noopener noreferrer">
+        <Link href="https://fr.linkedin.com/company/cyna-it" target="_blank" rel="noopener noreferrer">
           <Image
             src="/assets/Linkedin.png"
             alt="LinkedIn"

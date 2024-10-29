@@ -1,43 +1,61 @@
 import React from 'react';
 import Link from 'next/link';
-import { Button } from '@/components/ui/button';
 import Image from 'next/image';
+import { Button } from '@/components/ui/button';
+import { Navbar, NavbarBrand, NavbarContent, NavbarItem } from '@nextui-org/react';
 
 export default function Header() {
   return (
-    <header className="p-4 bg-gray-800 text-white">
-      <h1>Header start</h1>
-      <nav>
-        <Image
-        src="/assets/cynalogo.png"
-        alt="cynaLogo" 
-        width={75}
-        height={75}/>
-        <ul className="flex space-x-4">
-          <li>
-            <Link href="/" passHref>
-              <Button asChild>
-                <p>Home</p>
-              </Button>
-            </Link>
-          </li>
-          <li>
-            <Link href="/about" passHref>
-              <Button asChild>
-                <p>About</p>
-              </Button>
-            </Link>
-          </li>
-          <li>
-            <Link href="/contact" passHref>
-              <Button asChild>
-                <p>Contact</p>
-              </Button>
-            </Link>
-          </li>
-        </ul>
-      </nav>
-      <h1>Header end</h1>
+    
+    <header className="p-3 bg-gray-800 text-white">
+        <div>
+        <Navbar className='sticky' isBordered>
+            <NavbarBrand>
+            <Image
+                src="/assets/cynalogo.png"
+                alt="cynaLogo"
+                width={75}
+                height={75}
+            />
+            <p className="font-bold text-inherit">Cyna</p>
+            </NavbarBrand>
+            <NavbarContent className="hidden sm:flex gap-4" justify="center">
+            <NavbarItem>
+                <Link href="/" passHref>
+                <Button asChild>
+                    <p>Home</p>
+                </Button>
+                </Link>
+            </NavbarItem>
+            <NavbarItem>
+                <Link href="/about" passHref>
+                <Button asChild>
+                    <p>About</p>
+                </Button>
+                </Link>
+            </NavbarItem>
+            <NavbarItem>
+                <Link href="/contact" passHref>
+                <Button asChild>
+                    <p>Contact</p>
+                </Button>
+                </Link>
+            </NavbarItem>
+            </NavbarContent>
+            <NavbarContent justify="end">
+            <NavbarItem className="hidden lg:flex">
+                <Button>
+                    <Link href="/login">Login</Link>
+                </Button>
+            </NavbarItem>
+            <NavbarItem>
+                <Button>
+                Sign Up
+                </Button>
+            </NavbarItem>
+            </NavbarContent>
+        </Navbar>
+        </div>
     </header>
   );
 }
