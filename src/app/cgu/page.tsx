@@ -1,6 +1,6 @@
 import React from 'react'
-import Header from '../communs/Header'
-import Footer from '../communs/Footer'
+import Header from '../communs/Header';
+import Footer from '../communs/Footer';
 
 const cgu = () => {
   return (

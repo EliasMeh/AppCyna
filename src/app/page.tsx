@@ -1,5 +1,4 @@
 import React from 'react';
-import Image from "next/image";
 import Header from './communs/Header';
 import Footer from './communs/Footer';
 import ProductCard from './components/ProductCard';
@@ -21,6 +20,7 @@ export default function Home() {
         <div>
           <Button variant="outline">Click Me</Button>
         </div>
+        
       </div>
       <Footer />
     </main>
