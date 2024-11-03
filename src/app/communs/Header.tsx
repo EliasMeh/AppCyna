@@ -7,9 +7,9 @@ import { Navbar, NavbarBrand, NavbarContent, NavbarItem } from '@nextui-org/reac
 export default function Header() {
   return (
     
-    <header className="sticky top-0 z-50 bg-gray-800 text-white">
+    <header className="sticky top-0 z-50 bg-gray-800 text-white rounded-xl">
         <div>
-            <Navbar className="flex items-center bg-white border-b-2 border-stone-400 shadow-lg p-4" isBordered>
+            <Navbar className="flex items-center bg-customViolet border-b-2 border-stone-400 shadow-lg p-4 rounded-xl" isBordered>
                 <NavbarBrand>
                 <Image
                     src="/assets/cynalogo.png"

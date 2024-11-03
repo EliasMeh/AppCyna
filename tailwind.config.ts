@@ -10,6 +10,11 @@ const config: Config = {
   theme: {
   	extend: {
   		colors: {
+
+			customViolet: 'rgb(38,26,104)',
+			customVioletLight: 'rgb(40,26,100)',
+
+
   			background: 'hsl(var(--background))',
   			foreground: 'hsl(var(--foreground))',
   			card: {
