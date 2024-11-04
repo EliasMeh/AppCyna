@@ -3,7 +3,7 @@ import Header from './communs/Header';
 import Footer from './communs/Footer';
 import ProductCard from './components/ProductCard';
 import Link from 'next/link';
-import { Button } from '@/components/ui/button';
+import { Button } from '../components/ui/button';
 
 export default function Home() {
   return (

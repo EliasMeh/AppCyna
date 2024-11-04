@@ -5,7 +5,7 @@ import Image from 'next/image';
 
 export default function Footer() {
   return (
-    <footer className="p-4 bg-gray-800 text-white rounded">
+    <footer className="p-4 bg-customViolet text-white rounded">
 
       <div className="flex space-x-4 mt-4 items-center">
         <Link href="/cgu" passHref>
