@@ -6,56 +6,54 @@ import { Navbar, NavbarBrand, NavbarContent, NavbarItem } from '@nextui-org/reac
 
 export default function Header() {
   return (
-    
-    <header className="sticky top-0 z-50 bg-gray-800 text-white rounded-xl">
-        <div>
-            <Navbar className="flex items-center bg-customViolet border-b-2 border-stone-400 shadow-lg p-4 rounded-xl" isBordered>
-                <NavbarBrand>
-                <Image
+    <header className="sticky top-0 z-50 bg-red-700 text-white rounded">
+      <div className="bg-customViolet rounded-lg p-2">
+        <Navbar isBordered className="rounded-lg">
+          <div className="flex items-center justify-between w-full">
+            <div className="flex items-center">
+              <Link href="/" passHref>
+                <div className="flex items-center cursor-pointer">
+                  <Image
                     src="/assets/cynalogo.png"
                     alt="cynaLogo"
-                    width={75}
-                    height={75}
+                    width={50}
+                    height={50}
+                    className="rounded-full mt-6 mb-6"
+                  />
+                  <h1 className="font-bold text-inherit ml-2 text-2xl">Cyna</h1>
+                </div>
+              </Link>
+            </div>
+            <div className="flex-1 flex justify-center gap-4">
+              
+              <NavbarItem className="list-none">
+                <Link href="/login" passHref>
+                  <Button asChild>
+                    <p>Login</p>
+                  </Button>
+                </Link>
+              </NavbarItem>
+              <NavbarItem className="list-none">
+                <Link href="/signup" passHref>
+                  <Button asChild>
+                    <p>Sign Up</p>
+                  </Button>
+                </Link>
+              </NavbarItem>
+            </div>
+            <div className="flex items-center">
+              <Button className="bg-white text-gray-800 rounded-full">
+                <Image
+                  src="/assets/panierimg.png"
+                  alt="Panier"
+                  width={24}
+                  height={24}
                 />
-                <p className="font-bold text-inherit">Cyna</p>
-                </NavbarBrand>
-                <NavbarContent className="hidden sm:flex gap-4" justify="center">
-                <NavbarItem>
-                    <Link href="/" passHref>
-                    <Button asChild>
-                        <p>Home</p>
-                    </Button>
-                    </Link>
-                </NavbarItem>
-                <NavbarItem>
-                    <Link href="/about" passHref>
-                    <Button asChild>
-                        <p>About</p>
-                    </Button>
-                    </Link>
-                </NavbarItem>
-                <NavbarItem>
-                    <Link href="/contact" passHref>
-                    <Button asChild>
-                        <p>Contact</p>
-                    </Button>
-                    </Link>
-                </NavbarItem>
-                </NavbarContent>
-                <NavbarContent justify="end">
-                <NavbarItem className="hidden lg:flex">
-                    <Button>
-                        <Link href="/login">Login</Link>
-                    </Button>
-                </NavbarItem>
-                <NavbarItem>
-                    <Button>
-                    Sign Up
-                    </Button>
-                </NavbarItem>
-                </NavbarContent>
-            </Navbar>
-        </div>
+              </Button>
+            </div>
+          </div>
+        </Navbar>
+      </div>
     </header>
   );
 }

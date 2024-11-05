@@ -7,7 +7,7 @@ export default function Footer() {
   return (
     <footer className="p-4 bg-customViolet text-white rounded-xl">
 
-      <div className="flex space-x-4 mt-4 items-center">
+      <div className="flex space-x-1 mt-4 items-center">
         <Link href="/cgu" passHref>
           <Button>CGU</Button>
         </Link>
@@ -25,14 +25,7 @@ export default function Footer() {
             height={50}
           />
         </Link>
-        <Link href="https://www.github.com" target="_blank" rel="noopener noreferrer">
-          <Image
-            src="/assets/github-mark-white.png"
-            alt="GitHub"
-            width={50}
-            height={50}
-          />
-        </Link>
+        
       </div>
     </footer>
   );
