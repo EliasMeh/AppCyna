@@ -1,35 +1,53 @@
-import React from 'react'
+'use client'
+import React, { useEffect, useState } from 'react';
 
 interface User {
-    id: number;
-    name: string;
-    email: string;
+  id: number;
+  name: string;
+  email: string;
 }
 
-const UsersPage = async () => {
-    const res = await fetch('https://jsonplaceholder.typicode.com/users', {cache: "no-store"});
-    const users: User[] = await res.json();
+const UsersPage: React.FC = () => {
+  const [users, setUsers] = useState<User[]>([]);
 
-    return (
-        <>
-        <h1>Users</h1>
-        <table>
-            <thead>
-                <tr>
-                    <th>Name</th>
-                    <th>Email</th>
-                </tr>
-            </thead>
-            <tbody>
-                {users.map(user => <tr key={user.id}>
-                        <th>{user.name}</th>
-                        <th>{user.name}</th>
-                    </tr>)}
-                
-            </tbody>
-        </table>
-        </>
-    )
-}
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const res = await fetch('/api/users');
+        if (!res.ok) {
+          throw new Error('Failed to fetch users');
+        }
+        const data: User[] = await res.json();
+        setUsers(data);
+      } catch (error) {
+        console.error('Error fetching users:', error);
+      }
+    };
 
-export default UsersPage
+    fetchUsers();
+  }, []);
+
+  return (
+    <>
+      <h1>Users</h1>
+      <table>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Email</th>
+          </tr>
+        </thead>
+        <tbody>
+          {users.map(user => (
+            <tr key={user.id}>
+              <td>{user.name}</td>
+              <td>{user.email}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </>
+  );
+};
+
+export default UsersPage;
