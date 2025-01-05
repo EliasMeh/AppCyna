@@ -1,3 +1,4 @@
+'use client'
 import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -27,14 +28,14 @@ export default function Header() {
             <div className="flex-1 flex justify-center gap-4">
               
               <NavbarItem className="list-none">
-                <Link href="/login" passHref>
+                <Link href="/users/connexion" passHref>
                   <Button asChild>
                     <p>Login</p>
                   </Button>
                 </Link>
               </NavbarItem>
               <NavbarItem className="list-none">
-                <Link href="/signup" passHref>
+                <Link href="/users/inscription" passHref>
                   <Button asChild>
                     <p>Sign Up</p>
                   </Button>

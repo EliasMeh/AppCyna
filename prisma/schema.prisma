@@ -18,8 +18,10 @@ model User {
   mdp      String
   nom      String
   prenom   String
-  adresse  String
-  email    String
+  adresse  String?
+  email    String @unique
+  role     String
+  verified Boolean @default(false)
   panier   Panier[]
   orders   PreviousOrder[]
   subscriptions Subscription[]
