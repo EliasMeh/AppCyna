@@ -4,11 +4,31 @@ import bcrypt from "bcrypt";
 
 const prisma = new PrismaClient();
 
+/** 
+async function findLowestAvailableId() {
+    const users = await prisma.user.findMany({
+        select: { id: true },
+        orderBy: { id: 'asc' },
+    });
+
+    let expectedId = 1;
+    for (const user of users) {
+        if (user.id !== expectedId) {
+            return expectedId;
+        }
+        expectedId++;
+    }
+    return expectedId;
+}
+*/
+
 //Création d'un user
 export async function POST(request: NextRequest) {
     const body = await request.json();
 
     const hashedPassword = await bcrypt.hash(body.mdp, 10);
+
+    
 
     const data = await prisma.user.create({
         data: {

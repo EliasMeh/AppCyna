@@ -1,13 +1,22 @@
-import React from 'react'
-import AddToCart from './AddToCart'
+import React from 'react';
+import AddToCart from './AddToCart';
+import Image from './Image';
 
-const ProductCard = () => {
-  return (
-    <main>
-        <p>Nom Produit</p>
-        <AddToCart />
-    </main>
-  )
+interface ProductCardProps {
+  productId: string;
+  productName: string;
+  productPrice: number;
 }
 
-export default ProductCard
+const ProductCard = ({ productName, productPrice, productId }: ProductCardProps) => {
+  return (
+    <main>
+      <Image id={productId} />
+      <p>{productName}</p>
+      <p>{productPrice}</p>
+      <AddToCart />
+    </main>
+  );
+};
+ 
+export default ProductCard;

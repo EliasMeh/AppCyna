@@ -1,19 +1,21 @@
 import React from 'react';
 import Header from './communs/Header';
 import Footer from './communs/Footer';
-import ProductCard from './components/ProductCard';
 import Link from 'next/link';
+import TextDyna from './components/TextDyna';
 import { Button } from '../components/ui/button';
+import Grille from './components/Grille';
 
 export default function Home() {
   return (
     <main>
       <Header />
       <div>
-        <h1>Hello World</h1>
-        <p>a</p>
-        <p>a</p>
-        <p>a</p>
+        <h1>Page principale</h1>
+        <p>Texte dynamique : </p>
+        <TextDyna />
+        <Grille />
+        
         <p>a</p>
         <p>a</p>
         <p>a</p>
@@ -38,7 +40,6 @@ export default function Home() {
         <p>a</p>
         <p>a</p>
 
-        <ProductCard />
         <div>
           <Link href="/users">
             <button>Go to Users Page</button>
