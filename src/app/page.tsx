@@ -10,7 +10,7 @@ export default function Home() {
   return (
     <main>
       <Header />
-      <div>
+      <div className='pl-2'>
         <h1>Page principale</h1>
         <p>Texte dynamique : </p>
         <TextDyna />
@@ -39,12 +39,6 @@ export default function Home() {
         <p>a</p>
         <p>a</p>
         <p>a</p>
-
-        <div>
-          <Link href="/users">
-            <button>Go to Users Page</button>
-          </Link>
-        </div>
         <div>
           <Button variant="outline">Click Me</Button>
         </div>

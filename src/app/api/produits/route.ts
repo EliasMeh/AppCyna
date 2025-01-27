@@ -1,17 +1,22 @@
+import { PrismaClient } from '@prisma/client';
 import { NextRequest, NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
 export async function GET() {
-    const data = await prisma.produit.findMany();
-    return NextResponse.json(data);
+    try {
+        const data = await prisma.produit.findMany();
+        return NextResponse.json(data);
+    } catch (error) {
+        console.error('Error fetching products:', error);
+        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    }
 }
 
 export async function POST(request: NextRequest) {
     try {
         const body = await request.json();
-        const { nom, prix, description } = body;
+        const { nom, prix, description, categorieId } = body;
 
         if (!nom || !prix || !description) {
             return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
@@ -22,6 +27,8 @@ export async function POST(request: NextRequest) {
                 nom,
                 prix,
                 description,
+                quantite: body.quantite || 0, // default value if quantite is not provided
+                ...(categorieId && { categorie: { connect: { id: categorieId } } })
             },
         });
 

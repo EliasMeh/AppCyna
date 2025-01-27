@@ -4,6 +4,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Navbar, NavbarBrand, NavbarContent, NavbarItem } from '@nextui-org/react';
+import { Search, ShoppingBasket } from 'lucide-react';
 
 export default function Header() {
   return (
@@ -43,16 +44,17 @@ export default function Header() {
               </NavbarItem>
             </div>
             <div className="flex items-center">
+              <Link
+                href="/pages/recherche">
+                <Button className="bg-white text-gray-800 rounded-full">
+                  <Search size={24} />
+                </Button>
+              </Link>
               <Button className="bg-white text-gray-800 rounded-full">
-                <Image
-                  src="/assets/panierimg.png"
-                  alt="Panier"
-                  width={24}
-                  height={24}
-                />
+                <ShoppingBasket />
               </Button>
             </div>
-          </div>
+          </div>  
         </Navbar>
       </div>
     </header>
