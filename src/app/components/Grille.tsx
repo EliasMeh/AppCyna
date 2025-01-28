@@ -16,7 +16,7 @@ const Grille = () => {
   useEffect(() => {
     async function fetchProducts() {
       try {
-        const response = await fetch('http://localhost:3000/api/produits');
+        const response = await fetch('/api/produits');
         if (!response.ok) {
           throw new Error('Failed to fetch products');
         }
