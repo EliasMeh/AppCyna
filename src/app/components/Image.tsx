@@ -1,11 +1,12 @@
 'use client'
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react';
+import Image from 'next/image';
 
 interface ImageProps {
     id: string;
 }
 
-const Image = ({ id }: ImageProps) => {
+const MyImageComponent = ({ id }: ImageProps) => {
     const [imageSrc, setImageSrc] = useState<string | null>(null);
 
     useEffect(() => {
@@ -30,9 +31,19 @@ const Image = ({ id }: ImageProps) => {
 
     return (
         <div>
-            {imageSrc ? <img src={imageSrc} alt="Fetched Image" /> : <p>Loading...</p>}
+            {imageSrc ? (
+                <Image
+                    src={imageSrc}
+                    alt="Fetched Image"
+                    width={200}
+                    height={200}
+                    unoptimized // Since it's a base64 image, we need to use unoptimized
+                />
+            ) : (
+                <p>Loading...</p>
+            )}
         </div>
-    )
+    );
 }
 
-export default Image
+export default MyImageComponent;
