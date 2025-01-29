@@ -1,12 +1,30 @@
 'use client'
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Navbar, NavbarBrand, NavbarContent, NavbarItem } from '@nextui-org/react';
+import { Navbar, NavbarItem } from '@nextui-org/react';
 import { Search, ShoppingBasket } from 'lucide-react';
 
 export default function Header() {
+  const [user, setUser] = useState<{ id: number; email: string; nom: string } | null>(null);
+  const router = useRouter();
+
+  useEffect(() => {
+    // Check for logged-in user (replace this with your actual authentication logic)
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
+    }
+  }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem('user'); // Clear user data
+    setUser(null);
+    router.push('/'); // Redirect to homepage
+  };
+
   return (
     <header className="sticky top-0 z-50 bg-red-700 text-white rounded">
       <div className="bg-customViolet rounded-lg p-2">
@@ -26,26 +44,41 @@ export default function Header() {
                 </div>
               </Link>
             </div>
+
             <div className="flex-1 flex justify-center gap-4">
-              
-              <NavbarItem className="list-none">
-                <Link href="/users/connexion" passHref>
-                  <Button asChild>
-                    <p>Login</p>
-                  </Button>
-                </Link>
-              </NavbarItem>
-              <NavbarItem className="list-none">
-                <Link href="/users/inscription" passHref>
-                  <Button asChild>
-                    <p>Sign Up</p>
-                  </Button>
-                </Link>
-              </NavbarItem>
+              {user ? (
+                <>
+                  <NavbarItem className="list-none">
+                    <p className="font-semibold">Welcome, {user.nom}!</p>
+                  </NavbarItem>
+                  <NavbarItem className="list-none">
+                    <Button onClick={handleLogout} className="bg-gray-700">
+                      Logout
+                    </Button>
+                  </NavbarItem>
+                </>
+              ) : (
+                <>
+                  <NavbarItem className="list-none">
+                    <Link href="/users/connexion" passHref>
+                      <Button asChild>
+                        <p>Login</p>
+                      </Button>
+                    </Link>
+                  </NavbarItem>
+                  <NavbarItem className="list-none">
+                    <Link href="/users/inscription" passHref>
+                      <Button asChild>
+                        <p>Sign Up</p>
+                      </Button>
+                    </Link>
+                  </NavbarItem>
+                </>
+              )}
             </div>
+
             <div className="flex items-center">
-              <Link
-                href="/pages/recherche">
+              <Link href="/pages/recherche">
                 <Button className="bg-white text-gray-800 rounded-full">
                   <Search size={24} />
                 </Button>
@@ -54,10 +87,9 @@ export default function Header() {
                 <ShoppingBasket />
               </Button>
             </div>
-          </div>  
+          </div>
         </Navbar>
       </div>
     </header>
   );
 }
-
