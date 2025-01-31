@@ -1,6 +1,6 @@
 import React from 'react';
 import AddToCart from './AddToCart';
-import Image from './ImagePre';
+import ImagePre from './ImagePre';
 
 interface ProductCardProps {
   productId: string;
@@ -11,7 +11,7 @@ interface ProductCardProps {
 const ProductCard = ({ productName, productPrice, productId }: ProductCardProps) => {
   return (
     <main>
-      <Image id={productId} alt={`Image of ${productName}`} />
+      <ImagePre id={productId} alt={`Image of ${productName}`} />
       <p>{productName}</p>
       <p>{productPrice}</p>
       <AddToCart />
