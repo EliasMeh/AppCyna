@@ -1,6 +1,6 @@
 import React from 'react';
 import AddToCart from './AddToCart';
-import Image from './Image';
+import Image from './ImagePre';
 
 interface ProductCardProps {
   productId: string;
@@ -11,12 +11,12 @@ interface ProductCardProps {
 const ProductCard = ({ productName, productPrice, productId }: ProductCardProps) => {
   return (
     <main>
-      <Image id={productId} />
+      <Image id={productId} alt={`Image of ${productName}`} />
       <p>{productName}</p>
       <p>{productPrice}</p>
       <AddToCart />
     </main>
   );
 };
- 
+
 export default ProductCard;

@@ -4,6 +4,7 @@ import Image from 'next/image';
 
 interface ImageProps {
     id: string;
+    alt: string;
 }
 
 const MyImageComponent = ({ id }: ImageProps) => {

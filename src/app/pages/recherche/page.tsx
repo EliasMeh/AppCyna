@@ -2,7 +2,7 @@
 
 import { MagnifyingGlassIcon } from '@heroicons/react/24/outline';
 import { useSearchParams, usePathname, useRouter } from 'next/navigation';
-import React, { useState, useEffect } from 'react';
+import React, { Suspense, useState, useEffect } from 'react';
 import ProductCard from '../../components/ProductCard';
 import Header from '@/app/communs/Header';
 import Footer from '@/app/communs/Footer';
@@ -20,7 +20,7 @@ interface Category {
   produits: Product[]; // Include products in the category
 }
 
-export default function Search() {
+function Search() {
   const searchParams = useSearchParams();
   const pathname = usePathname();
   const { replace } = useRouter();
@@ -188,5 +188,13 @@ export default function Search() {
       </div>
       <Footer />
     </div>
+  );
+}
+
+export default function SearchPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <Search />
+    </Suspense>
   );
 }

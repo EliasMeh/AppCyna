@@ -1,14 +1,18 @@
-import { NextResponse } from "next/server";
-import jwt from "jsonwebtoken";
+import { NextRequest, NextResponse } from "next/server";
+import jwt, { JwtPayload } from "jsonwebtoken";
 
 const SECRET_KEY = process.env.JWT_SECRET!;
 
-export function middleware(req: any) {
+export function middleware(req: NextRequest) {
     const token = req.cookies.get("token")?.value;
 
     try {
-        jwt.verify(token, SECRET_KEY);
-        return NextResponse.next(); // Allow access
+        if (token) {
+            jwt.verify(token, SECRET_KEY) as JwtPayload;
+            return NextResponse.next(); // Allow access
+        } else {
+            return NextResponse.redirect(new URL("/api/users/connexion", req.url)); // Redirect if not authenticated
+        }
     } catch {
         return NextResponse.redirect(new URL("/api/users/connexion", req.url)); // Redirect if not authenticated
     }

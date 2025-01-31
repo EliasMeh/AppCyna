@@ -26,7 +26,6 @@ export default function Search() {
   const [selectedCategories, setSelectedCategories] = useState<number[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [sortOrder, setSortOrder] = useState<string>('asc');
 
   // Chargement des résultats de recherche en fonction des paramètres de l'URL
   useEffect(() => {
@@ -101,10 +100,6 @@ export default function Search() {
     });
   }
 
-  function handleSortChange(event: React.ChangeEvent<HTMLSelectElement>) {
-    setSortOrder(event.target.value);
-  }
-
   const filteredResults = selectedCategories.length
     ? results.filter(
         (product) =>
@@ -112,15 +107,7 @@ export default function Search() {
       )
     : results;
 
-  const sortedResults = filteredResults.sort((a, b) => {
-    if (sortOrder === 'asc') {
-      return a.prix - b.prix;
-    } else {
-      return b.prix - a.prix;
-    }
-  });
-
-  console.log('Filtered Results:', sortedResults); // Debug des résultats filtrés
+  console.log('Filtered Results:', filteredResults); // Debug des résultats filtrés
 
   return (
     <div>
@@ -141,19 +128,10 @@ export default function Search() {
       {loading && <div>Loading...</div>}
       {error && <div>Error: {error}</div>}
 
-      {/* Sorting */}
-      <div className="mt-4">
-        <label htmlFor="sort" className="mr-2">Sort by price:</label>
-        <select id="sort" value={sortOrder} onChange={handleSortChange}>
-          <option value="asc">Ascending</option>
-          <option value="desc">Descending</option>
-        </select>
-      </div>
-
       {/* Résultats filtrés */}
       <div>
-        {sortedResults.length > 0 ? (
-          sortedResults.map((product) => (
+        {filteredResults.length > 0 ? (
+          filteredResults.map((product) => (
             <ProductCard
               key={product.id}
               productName={product.nom}
