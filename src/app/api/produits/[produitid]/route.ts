@@ -13,3 +13,26 @@ export async function GET(request: Request) {
 
     return NextResponse.json(data);
 }
+
+export async function PUT(request: Request) {
+    try {
+        const url = new URL(request.url);
+        const produitid = Number(url.pathname.split("/").pop());
+        const body = await request.json();
+
+        const updatedProduct = await prisma.produit.update({
+            where: { id: produitid },
+            data: {
+                nom: body.nom,
+                prix: body.prix,
+                description: body.description,
+                quantite: body.quantite,
+                categorieId: body.categorieId
+            }
+        });
+
+        return NextResponse.json(updatedProduct);
+    } catch (error) {
+        return NextResponse.json({ error: "Error updating product" }, { status: 500 });
+    }
+}
