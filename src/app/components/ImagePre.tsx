@@ -34,6 +34,7 @@ const MyImageComponent = ({ id }: ImageProps) => {
         <div>
             {imageSrc ? (
                 <Image
+                    
                     src={imageSrc}
                     alt="Fetched Image"
                     width={200}

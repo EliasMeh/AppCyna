@@ -24,7 +24,13 @@ const LoginPage = () => {
 
     if (response.ok) {
       localStorage.setItem('user', JSON.stringify(data.user));
-      router.push('/'); // Redirect to homepage
+      if(data.user.role == 'ADMIN'){
+        router.push('/pages/backoffice');
+      }
+      else{
+        router.push('/'); 
+      }
+      
     } else {
       setError(data.error);
     }
