@@ -5,7 +5,12 @@ const prisma = new PrismaClient();
 
 export async function GET() {
     try {
-        const data = await prisma.produit.findMany();
+        const data = await prisma.produit.findMany(
+            {orderBy: { 
+                id: 'asc' 
+            }}
+        );
+        
         return NextResponse.json(data);
     } catch (error) {
         console.error('Error fetching products:', error);
