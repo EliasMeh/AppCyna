@@ -11,7 +11,7 @@ export default function Footer() {
           <Button>CGU</Button>
         </Link>
         
-        <Link href="/contact" passHref>
+        <Link href="/pages/contact" passHref>
           <Button>Contact</Button>
         </Link>
         

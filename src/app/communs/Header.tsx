@@ -79,7 +79,7 @@ export default function Header() {
 
             <div className="flex items-center">
               <Link href="/pages/recherche">
-                <Button className="bg-white text-gray-800 rounded-full">
+                <Button className="bg-white text-gray-800 rounded-full mr-1">
                   <Search size={24} />
                 </Button>
               </Link>
