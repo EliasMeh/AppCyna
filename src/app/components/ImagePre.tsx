@@ -8,22 +8,29 @@ interface ImageProps {
 }
 
 const MyImageComponent = ({ id }: ImageProps) => {
-    const [imageSrc, setImageSrc] = useState<string | null>(null);
+    const [imageSrc, setImageSrc] = useState<string>('/assets/nuage.png'); // Set default image
 
     useEffect(() => {
         async function fetchImage() {
             try {
-                const response = await fetch(`http://localhost:3000/api/image/presentation/${id}`);
+                const response = await fetch(`/api/image/presentation/${id}`);
+                if (!response.ok) {
+                    return; // Keep default image
+                }
                 const data = await response.json();
-                console.log('Fetched data:', data); // Log the response data for debugging
+                console.log('Raw response data:', data);
+
                 if (data && data.data) {
-                    // Decode base64 data and create a data URL
-                    const base64String = Buffer.from(data.data, 'base64').toString('base64');
-                    const imageUrl = `data:image/jpeg;base64,${base64String}`;
+                    const byteArray = Object.values(data.data) as number[];
+                    const uint8Array = new Uint8Array(byteArray);
+                    const base64String = btoa(String.fromCharCode.apply(null, Array.from(uint8Array)));
+                    const imageUrl = `data:image/png;base64,${base64String}`;
+                    console.log('Created image URL:', imageUrl.substring(0, 50) + '...');
                     setImageSrc(imageUrl);
                 }
             } catch (error) {
-                console.log('Erreur lors de la récupération de l\'image', error);
+                console.error('Error fetching image:', error);
+                // Keep default image on error
             }
         }
 
@@ -32,18 +39,19 @@ const MyImageComponent = ({ id }: ImageProps) => {
 
     return (
         <div>
-            {imageSrc ? (
-                <Image
-                    
-                    src={imageSrc}
-                    alt="Fetched Image"
-                    width={200}
-                    height={200}
-                    unoptimized // Since it's a base64 image, we need to use unoptimized
-                />
-            ) : (
-                <p>Loading...</p>
-            )}
+            <Image
+                src={imageSrc}
+                alt="Fetched Image"
+                width={200}
+                height={200}
+                unoptimized
+                onError={(e) => {
+                    console.error('Error rendering image:', e);
+                    setImageSrc('/assets/nuage.png'); // Set fallback on image load error
+                }}
+                onLoad={() => console.log('Image rendered successfully')}
+                style={{ objectFit: 'contain' }}
+            />
         </div>
     );
 }
