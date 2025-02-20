@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
                 prenom,
                 email,
                 mdp: hashedPassword,
-                role: "user",
+                role: "USER",
                 verified: false,
             },
         });
