@@ -10,10 +10,10 @@ interface ProductCardProps {
 
 const ProductCard = ({ productName, productPrice, productId }: ProductCardProps) => {
   return (
-    <main>
+    <main className='p-4 border border-gray-300 rounded-md inline-block m-4'>
       <ImagePre id={productId} alt={`Image of ${productName}`} />
-      <p>{productName}</p>
-      <p>{productPrice}</p>
+      <p className='mt-2'>{productName}</p>
+      <p className='font-bold'>{productPrice}€</p>
       <AddToCart />
     </main>
   );
