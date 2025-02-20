@@ -2,6 +2,8 @@ import React from 'react'
 import TextInputBack from '@/app/components/backcomp/TextInputBack';
 import GrilleModifiable from '@/app/components/backcomp/GrilleModifiable';
 import Deco from '@/app/components/backcomp/Deco';
+import { InputFile } from '@/app/components/backcomp/input-file';
+
 
 
 const page = () => {
@@ -20,6 +22,14 @@ const page = () => {
           <h2 className='pr-3'>Liste des produits : </h2>
           <GrilleModifiable />
         </div>
+        <div>
+          <InputFile />
+        </div>
+        <br/>
+        <br/>
+        <br/>
+        <br/>
+        <br/>
       </main>
     </>
   );
