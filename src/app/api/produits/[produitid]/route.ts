@@ -4,14 +4,26 @@ import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 
 export async function GET(request: Request) {
-    const url = new URL(request.url);
-    const produitid = Number(url.pathname.split("/").pop());
+    try {
+        const url = new URL(request.url);
+        const produitid = Number(url.pathname.split("/").pop());
 
-    const data = await prisma.produit.findFirst({
-        where: { id: produitid },
-    });
+        const data = await prisma.produit.findFirst({
+            where: { id: produitid },
+            include: {
+                images: true // Include the images relation
+            }
+        });
 
-    return NextResponse.json(data);
+        if (!data) {
+            return NextResponse.json({ error: 'Product not found' }, { status: 404 });
+        }
+
+        return NextResponse.json(data);
+    } catch (error) {
+        console.error('Error fetching product:', error);
+        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    }
 }
 
 export async function PUT(request: Request) {
