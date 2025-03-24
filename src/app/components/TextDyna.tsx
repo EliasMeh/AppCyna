@@ -7,7 +7,7 @@ const TextDyna = () => {
   useEffect(() => {
     async function fetchText() {
       try {
-        const response = await fetch('http://localhost:3000/api/text');
+        const response = await fetch('https://localhost:3000/api/text');
         const data = await response.json();
         setTextaffichable(data.content);
       } catch (error) {
@@ -19,7 +19,10 @@ const TextDyna = () => {
   }, []);
 
   return (
-    <div>{textaffichable}</div>
+    <div className='border-spacing-5 border-2 border-gray-300 p-5 rounded-lg'>
+      <h2>Texte dynamique  : </h2>
+      {textaffichable}
+    </div>
   );
 }
 

@@ -14,7 +14,6 @@ export default function Home() {
       <div className='pl-2'>
         <h1>Page principale</h1>
         <Carousel />
-        <p>Texte dynamique : </p>
         <TextDyna />
         <Grille />
         
