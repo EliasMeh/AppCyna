@@ -10,7 +10,13 @@ interface Produit {
   description: string
   quantite: number
   categorieId: number | null
-  images: Array<{ id: number; data: any }> 
+  images: Array<{
+    id: number;
+    data: {
+      type: 'Buffer';
+      data: number[];
+    }
+  }>
 }
 
 const ProductPage = () => {
