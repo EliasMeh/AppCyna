@@ -9,7 +9,9 @@ interface Product {
   id: number;
   nom: string;
   prix: number;
-  categoryId: number | null; // Permet de gérer le cas où categoryId est null
+  categoryId: number | null;
+  description: string;
+  quantite: number;
 }
 
 interface Category {
@@ -27,7 +29,6 @@ export default function Search() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Chargement des résultats de recherche en fonction des paramètres de l'URL
   useEffect(() => {
     const query = searchParams.get('query');
     if (query) {
@@ -35,7 +36,6 @@ export default function Search() {
     }
   }, [searchParams]);
 
-  // Chargement des catégories au montage du composant
   useEffect(() => {
     fetchCategories();
   }, []);
@@ -44,19 +44,15 @@ export default function Search() {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch(`/api/search?query=${term}`);
+      const response = await fetch(`/api/search?query=${encodeURIComponent(term)}`);
       if (!response.ok) {
         throw new Error('Failed to fetch search results');
       }
       const data: Product[] = await response.json();
-      console.log('Search Results:', data); // Debug des données reçues
+      console.log('Search Results:', data);
       setResults(data);
     } catch (error) {
-      if (error instanceof Error) {
-        setError(error.message);
-      } else {
-        setError('An unknown error occurred');
-      }
+      setError(error instanceof Error ? error.message : 'An unknown error occurred');
     } finally {
       setLoading(false);
     }
@@ -64,19 +60,15 @@ export default function Search() {
 
   async function fetchCategories() {
     try {
-      const response = await fetch(`/api/categorie`);
+      const response = await fetch('/api/categorie');
       if (!response.ok) {
         throw new Error('Failed to fetch categories');
       }
       const data: Category[] = await response.json();
-      console.log('Categories:', data); // Debug des catégories reçues
+      console.log('Categories:', data);
       setCategories(data);
     } catch (error) {
-      if (error instanceof Error) {
-        setError(error.message);
-      } else {
-        setError('An unknown error occurred');
-      }
+      setError(error instanceof Error ? error.message : 'An unknown error occurred');
     }
   }
 
@@ -91,76 +83,96 @@ export default function Search() {
   }
 
   function handleCategoryChange(categoryId: number) {
-    setSelectedCategories((prevSelectedCategories) => {
-      const newSelectedCategories = prevSelectedCategories.includes(categoryId)
-        ? prevSelectedCategories.filter((id) => id !== categoryId)
-        : [...prevSelectedCategories, categoryId];
-      console.log('Selected Categories:', newSelectedCategories); // Debug des catégories sélectionnées
-      return newSelectedCategories;
+    setSelectedCategories(prev => {
+      const newSelected = prev.includes(categoryId)
+        ? prev.filter(id => id !== categoryId)
+        : [...prev, categoryId];
+      console.log('Selected Categories:', newSelected);
+      return newSelected;
     });
   }
 
   const filteredResults = selectedCategories.length
-    ? results.filter(
-        (product) =>
-          product.categoryId && selectedCategories.includes(product.categoryId)
+    ? results.filter(product => 
+        product.categoryId && selectedCategories.includes(product.categoryId)
       )
     : results;
 
-  console.log('Filtered Results:', filteredResults); // Debug des résultats filtrés
-
   return (
-    <div>
-      {/* Barre de recherche */}
-      <div className="relative flex flex-1 flex-shrink-0">
+    <div className="container mx-auto p-4">
+      {/* Search Bar */}
+      <div className="relative flex flex-1 flex-shrink-0 mb-6">
         <label htmlFor="search" className="sr-only">
-          Search
+          Search products
         </label>
         <input
+          id="search"
           className="peer block w-full rounded-md border border-gray-200 py-[9px] pl-10 text-sm outline-2 placeholder:text-gray-500"
-          placeholder="Search"
+          placeholder="Search for products..."
           onChange={(e) => handleSearch(e.target.value)}
+          aria-label="Search products"
         />
         <MagnifyingGlassIcon className="absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-gray-500 peer-focus:text-gray-900" />
       </div>
 
-      {/* Loading ou message d'erreur */}
-      {loading && <div>Loading...</div>}
-      {error && <div>Error: {error}</div>}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        {/* Categories Sidebar */}
+        <div className="md:col-span-1">
+          <div className="sticky top-4 bg-white p-4 rounded-lg shadow">
+            <h2 className="font-bold text-lg mb-4">Categories</h2>
+            <ul className="space-y-2">
+              {categories.map((category) => (
+                <li key={category.id} className="flex items-center">
+                  <input
+                    type="checkbox"
+                    id={`category-${category.id}`}
+                    className="mr-2 rounded"
+                    checked={selectedCategories.includes(category.id)}
+                    onChange={() => handleCategoryChange(category.id)}
+                  />
+                  <label 
+                    htmlFor={`category-${category.id}`}
+                    className="text-sm cursor-pointer"
+                  >
+                    {category.nom}
+                  </label>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
 
-      {/* Résultats filtrés */}
-      <div>
-        {filteredResults.length > 0 ? (
-          filteredResults.map((product) => (
-            <ProductCard
-              key={product.id}
-              productName={product.nom}
-              productPrice={product.prix}
-              productId={product.id.toString()}
-            />
-          ))
-        ) : (
-          <div>No products found.</div>
-        )}
-      </div>
-
-      {/* Liste des catégories */}
-      <div>
-        <h2 className="font-bold">Catégories :</h2>
-        <ul>
-          {categories.map((categorie) => (
-            <li key={categorie.id} className="flex items-center">
-              <input
-                type="checkbox"
-                id={`category-${categorie.id}`}
-                className="mr-2"
-                checked={selectedCategories.includes(categorie.id)}
-                onChange={() => handleCategoryChange(categorie.id)}
-              />
-              <label htmlFor={`category-${categorie.id}`}>{categorie.nom}</label>
-            </li>
-          ))}
-        </ul>
+        {/* Results Grid */}
+        <div className="md:col-span-3">
+          {loading ? (
+            <div className="flex justify-center items-center h-40">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+            </div>
+          ) : error ? (
+            <div className="bg-red-50 p-4 rounded-lg text-red-600">
+              {error}
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {filteredResults.length > 0 ? (
+                filteredResults.map((product) => (
+                  <ProductCard
+                    key={product.id}
+                    productId={product.id}
+                    productName={product.nom}
+                    productPrice={product.prix}
+                    description={product.description}
+                    stock={product.quantite}
+                  />
+                ))
+              ) : (
+                <div className="col-span-full text-center py-10 text-gray-500">
+                  No products found.
+                </div>
+              )}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

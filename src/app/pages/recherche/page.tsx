@@ -12,6 +12,7 @@ interface Product {
   nom: string;
   prix: number;
   categoryId: number | null; // Allows for categoryId to be null
+  stock?: number; // Optional stock property
 }
 
 interface Category {
@@ -167,7 +168,8 @@ function Search() {
               key={product.id}
               productName={product.nom}
               productPrice={product.prix}
-              productId={product.id.toString()}
+              productId={product.id}
+              stock={product.stock || 0} // Ensure stock is provided, defaulting to 0 if undefined
             />
           ))
         ) : (
@@ -178,7 +180,8 @@ function Search() {
                 key={product.id}
                 productName={product.nom}
                 productPrice={product.prix}
-                productId={product.id.toString()}
+                productId={product.id}
+                stock={product.stock || 0} // Ensure stock is provided, defaulting to 0 if undefined
               />
             ))
           ) : (

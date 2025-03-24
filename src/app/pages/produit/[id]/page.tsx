@@ -1,22 +1,25 @@
 'use client'
+
 import React, { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
 import ImagePre from '@/app/components/ImagePre'
 
+interface ProductImage {
+  id: number;
+  data: {
+    type: 'Buffer';
+    data: number[];
+  };
+}
+
 interface Produit {
-  id: number
-  nom: string
-  prix: number
-  description: string
-  quantite: number
-  categorieId: number | null
-  images: Array<{
-    id: number;
-    data: {
-      type: 'Buffer';
-      data: number[];
-    }
-  }>
+  id: number;
+  nom: string;
+  prix: number;
+  description: string;
+  quantite: number;
+  categorieId: number | null;
+  images: ProductImage[];
 }
 
 const ProductPage = () => {
@@ -34,61 +37,65 @@ const ProductPage = () => {
         console.log('Response status:', response.status)
         
         if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`)
+          throw new Error(`Failed to fetch product (HTTP ${response.status})`)
         }
         
-        const data = await response.json()
-        console.log('Full API Response:', data)
+        const data: Produit = await response.json()
+        console.log('Product data received:', {
+          id: data.id,
+          name: data.nom,
+          imagesCount: data.images?.length ?? 0
+        })
         
         if (!data) {
           throw new Error('No data received from API')
         }
 
-        if (!('images' in data)) {
-          console.warn('No images property in product data')
+        // Ensure images array exists
+        if (!Array.isArray(data.images)) {
+          console.warn('Images property is not an array, initializing empty array')
           data.images = []
         }
 
-        console.log('Product data structure:', {
-          hasId: 'id' in data,
-          hasNom: 'nom' in data,
-          hasPrix: 'prix' in data,
-          hasImages: 'images' in data,
-          imagesLength: data.images?.length
-        })
-        
+        // Validate required fields
+        if (!data.id || !data.nom || typeof data.prix !== 'number') {
+          throw new Error('Invalid product data received')
+        }
+
         setProduct(data)
       } catch (error) {
-        console.error('Fetch error:', error)
-        setError(error instanceof Error ? error.message : 'Unknown error')
+        console.error('Error fetching product:', error)
+        setError(error instanceof Error ? error.message : 'Failed to load product')
       } finally {
         setLoading(false)
       }
     }
 
-    if (productId) {
-      fetchProduct()
-    } else {
-      console.error('No productId available')
-      setError('No product ID provided')
+    if (!productId) {
+      console.error('No product ID provided')
+      setError('Missing product ID')
       setLoading(false)
+      return
     }
-  }, [productId])
 
-  console.log('Rendering with product:', product)
+    fetchProduct()
+  }, [productId])
 
   if (loading) {
     return (
       <div className="flex justify-center items-center min-h-screen">
-        <p className="text-xl">Loading...</p>
+        <div className="animate-pulse">
+          <p className="text-xl text-gray-600">Loading product details...</p>
+        </div>
       </div>
     )
   }
 
   if (error) {
     return (
-      <div className="flex justify-center items-center min-h-screen">
-        <p className="text-xl text-red-500">Error: {error}</p>
+      <div className="flex flex-col justify-center items-center min-h-screen">
+        <p className="text-xl text-red-500 mb-4">Error loading product</p>
+        <p className="text-gray-600">{error}</p>
       </div>
     )
   }
@@ -96,51 +103,56 @@ const ProductPage = () => {
   if (!product) {
     return (
       <div className="flex justify-center items-center min-h-screen">
-        <p className="text-xl">Product not found</p>
+        <p className="text-xl text-gray-600">Product not found</p>
       </div>
     )
   }
 
   return (
     <div className="container mx-auto p-4">
-      <div className="max-w-2xl mx-auto bg-white rounded-lg shadow-md p-6">
-        <div className="flex flex-col md:flex-row gap-6">
-        <div className="md:w-1/2">
-            {product.images && product.images.length > 0 ? (
-                <div>
-                <ImagePre 
-                    id={product.id.toString()} 
-                    alt={product.nom} 
-                />
-                <p className="text-xs text-gray-500 mt-2">
-                    Product ID: {product.id}
-                </p>
-                </div>
-            ) : (
-                <div>
-                <ImagePre 
-                    id={product.id.toString()} 
-                    alt={product.nom} 
-                />
-                <p className="text-xs text-gray-500 mt-2">
-                    Product ID: {product.id}
-                </p>
-                </div>
-            )}
+      <div className="max-w-4xl mx-auto bg-white rounded-lg shadow-lg overflow-hidden">
+        <div className="flex flex-col md:flex-row">
+          {/* Product Image Section */}
+          <div className="md:w-1/2 p-6">
+            <div className="aspect-square relative rounded-lg overflow-hidden bg-gray-100">
+              <ImagePre 
+                id={product.id.toString()} 
+                alt={product.nom}
+              />
             </div>
-          
-          <div className="md:w-1/2 space-y-4">
-            <h1 className="text-3xl font-bold">{product.nom}</h1>
-            <p className="text-2xl font-semibold text-gray-700">{product.prix}€</p>
-            <p className="text-gray-600">{product.description}</p>
-            <p className="text-sm text-gray-500">
-              Stock disponible: {product.quantite}
+            <p className="text-xs text-gray-500 mt-2 text-center">
+              ID: {product.id}
             </p>
-            {product.categorieId && (
-              <p className="text-sm text-gray-500">
-                Catégorie ID: {product.categorieId}
+          </div>
+
+          {/* Product Details Section */}
+          <div className="md:w-1/2 p-6 space-y-4">
+            <h1 className="text-3xl font-bold text-gray-900">{product.nom}</h1>
+            <p className="text-2xl font-semibold text-indigo-600">
+              {product.prix.toLocaleString('fr-FR', {
+                style: 'currency',
+                currency: 'EUR'
+              })}
+            </p>
+            <div className="prose prose-sm text-gray-600">
+              <p>{product.description}</p>
+            </div>
+            <div className="space-y-2">
+              <p className="text-sm flex items-center gap-2">
+                <span className="font-medium text-gray-700">Stock:</span>
+                <span className={`${
+                  product.quantite > 0 ? 'text-green-600' : 'text-red-600'
+                }`}>
+                  {product.quantite > 0 ? `${product.quantite} available` : 'Out of stock'}
+                </span>
               </p>
-            )}
+              {product.categorieId && (
+                <p className="text-sm flex items-center gap-2">
+                  <span className="font-medium text-gray-700">Category:</span>
+                  <span className="text-gray-600">{product.categorieId}</span>
+                </p>
+              )}
+            </div>
           </div>
         </div>
       </div>
