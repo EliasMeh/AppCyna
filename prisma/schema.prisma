@@ -95,3 +95,21 @@ model Categorie {
   nom      String
   produits Produit[] 
 }
+
+enum ImageType {
+  JPEG
+  PNG
+  WEBP
+  GIF
+  SVG
+}
+
+model CarouselImage {
+  id          Int       @id @default(autoincrement())
+  data        Bytes
+  title       String?
+  order       Int       @default(0)
+  active      Boolean   @default(true)
+  contentType ImageType @default(JPEG)
+  createdAt   DateTime  @default(now())
+}

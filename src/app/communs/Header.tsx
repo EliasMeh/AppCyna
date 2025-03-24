@@ -7,22 +7,43 @@ import { Button } from '@/components/ui/button';
 import { Navbar, NavbarItem } from '@nextui-org/react';
 import { Search, ShoppingBasket } from 'lucide-react';
 
+interface User {
+  id: number;
+  email: string;
+  nom: string;
+  role: string;
+}
+
 export default function Header() {
-  const [user, setUser] = useState<{ id: number; email: string; nom: string; role: string } | null>(null);
+  const [user, setUser] = useState<User | null>(null);
   const router = useRouter();
 
   useEffect(() => {
-    // Check for logged-in user (replace this with your actual authentication logic)
-    const storedUser = localStorage.getItem('user');
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
+    try {
+      const storedUser = localStorage.getItem('user');
+      if (storedUser) {
+        const parsedUser = JSON.parse(storedUser);
+        if (parsedUser && 
+            typeof parsedUser.id === 'number' && 
+            typeof parsedUser.email === 'string' &&
+            typeof parsedUser.nom === 'string' &&
+            typeof parsedUser.role === 'string') {
+          setUser(parsedUser);
+        } else {
+          console.warn('Invalid user data structure in localStorage');
+          localStorage.removeItem('user');
+        }
+      }
+    } catch (error) {
+      console.error('Error parsing user data:', error);
+      localStorage.removeItem('user');
     }
   }, []);
 
   const handleLogout = () => {
-    localStorage.removeItem('user'); // Clear user data
+    localStorage.removeItem('user');
     setUser(null);
-    router.push('/'); // Redirect to homepage
+    router.push('/');
   };
 
   return (
@@ -46,21 +67,35 @@ export default function Header() {
             </div>
 
             <div className="flex-1 flex justify-center gap-4">
-                {user && user.role === "ADMIN" ? (
-                  <>
-                    <NavbarItem className="list-none">
-                      <p className="font-semibold">Welcome, {user.nom}!</p>
-                    </NavbarItem>
-                    <NavbarItem className="list-none">
-                      <Button onClick={handleLogout} className="bg-gray-700">
-                        Logout
-                      </Button>
-                      <Button onClick={() => router.push('/pages/backoffice')} className="bg-gray-700">
-                        Back Office
-                      </Button>
-                    </NavbarItem>
-                  </>
-                ) : (
+              {user && user.role === "ADMIN" ? (
+                <>
+                  <NavbarItem className="list-none">
+                    <p className="font-semibold">Welcome, {user.nom}!</p>
+                  </NavbarItem>
+                  <NavbarItem className="list-none">
+                    <Button onClick={handleLogout} className="bg-gray-700">
+                      Logout
+                    </Button>
+                    <Button 
+                      onClick={() => router.push('/pages/backoffice')} 
+                      className="bg-gray-700 ml-2"
+                    >
+                      Back Office
+                    </Button>
+                  </NavbarItem>
+                </>
+              ) : user ? (
+                <>
+                  <NavbarItem className="list-none">
+                    <p className="font-semibold">Welcome, {user.nom}!</p>
+                  </NavbarItem>
+                  <NavbarItem className="list-none">
+                    <Button onClick={handleLogout} className="bg-gray-700">
+                      Logout
+                    </Button>
+                  </NavbarItem>
+                </>
+              ) : (
                 <>
                   <NavbarItem className="list-none">
                     <Link href="/users/connexion" passHref>
@@ -86,9 +121,11 @@ export default function Header() {
                   <Search size={24} />
                 </Button>
               </Link>
-              <Button className="bg-white text-gray-800 rounded-full">
-                <ShoppingBasket />
-              </Button>
+              <Link href="/pages/panier">
+                <Button className="bg-white text-gray-800 rounded-full">
+                  <ShoppingBasket />
+                </Button>
+              </Link>
             </div>
           </div>
         </Navbar>

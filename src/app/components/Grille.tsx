@@ -6,6 +6,7 @@ interface Product {
   id: number;
   nom: string;
   prix: number;
+  quantite: number;
 }
 
 const Grille = () => {
@@ -47,7 +48,13 @@ const Grille = () => {
   return (
     <div>
       {products.map((product) => (
-        <ProductCard key={product.id} productName={product.nom} productPrice={product.prix} productId={product.id.toString()} />
+        <ProductCard 
+        key={product.id} 
+        productId={product.id} 
+        productName={product.nom} 
+        productPrice={product.prix}
+        stock={product.quantite}
+      />
       ))}
     </div>
   );

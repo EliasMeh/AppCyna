@@ -13,7 +13,7 @@ const LoginPage = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-
+    
     const response = await fetch('/api/users/connexion', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

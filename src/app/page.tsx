@@ -5,6 +5,7 @@ import Link from 'next/link';
 import TextDyna from './components/TextDyna';
 import { Button } from '../components/ui/button';
 import Grille from './components/Grille';
+import Carousel from './components/HomeComps/Carousel';
 
 export default function Home() {
   return (
@@ -12,6 +13,7 @@ export default function Home() {
       <Header />
       <div className='pl-2'>
         <h1>Page principale</h1>
+        <Carousel />
         <p>Texte dynamique : </p>
         <TextDyna />
         <Grille />
