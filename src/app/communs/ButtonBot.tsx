@@ -25,14 +25,14 @@ export default function ButtonBot() {
               </p>
               <div className="mt-4 flex flex-col space-y-2">
                 <Button 
-                  onClick={() => window.open('/chatbot', '_blank')}
+                  onClick={() => window.open('/pages/contact/chatbot', '_blank')}
                   className="w-full justify-start"
                 >
                   🤖 Démarrer le chat
                 </Button>
                 <Button 
                   variant="outline"
-                  onClick={() => window.location.href = '/contact'}
+                  onClick={() => window.location.href = '/pages/contact'}
                   className="w-full justify-start"
                 >
                   ✉️ Nous contacter
@@ -51,13 +51,7 @@ export default function ButtonBot() {
           onClick={() => setIsOpen(!isOpen)}
           className="rounded-full bg-customViolet hover:bg-customViolet/90 text-white shadow-lg flex items-center space-x-2 p-4"
         >
-          <Image
-            src="/assets/chat-icon.png"
-            alt="Chat"
-            width={24}
-            height={24}
-            className="mr-2"
-          />
+          🤖
           <span>{isOpen ? 'Fermer' : "Besoin d'aide ?"}</span>
         </Button>
       </motion.div>
