@@ -12,36 +12,52 @@ interface Product {
   categoryId: number | null;
   description: string;
   quantite: number;
+  stock?: number;
 }
 
 interface Category {
   id: number;
   nom: string;
+  produits: Product[];
 }
 
 export default function Search() {
   const searchParams = useSearchParams();
   const pathname = usePathname();
   const { replace } = useRouter();
-  const [results, setResults] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
-  const [selectedCategories, setSelectedCategories] = useState<number[]>([]);
-  const [showAvailableOnly, setShowAvailableOnly] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [selectedCategories, setSelectedCategories] = useState<number[]>([]);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [results, setResults] = useState<Product[]>([]);
+  const [showInStock, setShowInStock] = useState(false);
 
-  useEffect(() => {
-    const query = searchParams.get('query');
-    if (query) {
-      fetchResults(query);
-    }
-  }, [searchParams]);
-
+  // Rest of your client-side logic...
   useEffect(() => {
     fetchCategories();
   }, []);
 
+  // Your existing fetch functions and handlers...
+  async function fetchCategories() {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await fetch(`/api/categorie`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch categories');
+      }
+      const data: Category[] = await response.json();
+      setCategories(data);
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'An unknown error occurred');
+    } finally {
+      setLoading(false);
+    }
+  }
+
   async function fetchResults(term: string) {
+    if (!term) return;
     setLoading(true);
     setError(null);
     try {
@@ -50,7 +66,6 @@ export default function Search() {
         throw new Error('Failed to fetch search results');
       }
       const data: Product[] = await response.json();
-      console.log('Search Results:', data);
       setResults(data);
     } catch (error) {
       setError(error instanceof Error ? error.message : 'An unknown error occurred');
@@ -59,21 +74,11 @@ export default function Search() {
     }
   }
 
-  async function fetchCategories() {
-    try {
-      const response = await fetch('/api/categorie');
-      if (!response.ok) {
-        throw new Error('Failed to fetch categories');
-      }
-      const data: Category[] = await response.json();
-      console.log('Categories:', data);
-      setCategories(data);
-    } catch (error) {
-      setError(error instanceof Error ? error.message : 'An unknown error occurred');
-    }
-  }
-
   function handleSearch(term: string) {
+    setSearchTerm(term);
+    if (selectedCategories.length === 0) {
+      fetchResults(term);
+    }
     const params = new URLSearchParams(searchParams);
     if (term) {
       params.set('query', term);
@@ -84,66 +89,53 @@ export default function Search() {
   }
 
   function handleCategoryChange(categoryId: number) {
-    setSelectedCategories(prev => {
-      const newSelected = prev.includes(categoryId)
-        ? prev.filter(id => id !== categoryId)
-        : [...prev, categoryId];
-      console.log('Selected Categories:', newSelected);
+    setSelectedCategories((prevSelectedCategories) => {
+      const newSelected = prevSelectedCategories.includes(categoryId)
+        ? prevSelectedCategories.filter((id) => id !== categoryId)
+        : [...prevSelectedCategories, categoryId];
       return newSelected;
     });
+    
+    if (selectedCategories.length === 0) {
+      fetchResults(searchTerm);
+    }
   }
 
-  const filteredResults = results.filter(product => {
-    const matchesCategory = selectedCategories.length === 0 || 
-      (product.categoryId && selectedCategories.includes(product.categoryId));
-    const matchesAvailability = !showAvailableOnly || product.quantite > 0;
-    return matchesCategory && matchesAvailability;
-  });
+  const filteredProducts = selectedCategories.length > 0 
+    ? selectedCategories.flatMap((categoryId) => 
+        categories
+          .find(categorie => categorie.id === categoryId)
+          ?.produits.filter(product =>
+            product.nom.toLowerCase().includes(searchTerm.toLowerCase()) &&
+            (!showInStock || product.quantite > 0)
+          ) || []
+      )
+    : results.filter(product => !showInStock || product.quantite > 0);
 
   return (
     <div className="container mx-auto p-4">
       {/* Search Bar */}
-      <div className="relative flex flex-1 flex-shrink-0 mb-6">
-        <label htmlFor="search" className="sr-only">
-          Search products
-        </label>
-        <input
-          id="search"
-          className="peer block w-full rounded-md border border-gray-200 py-[9px] pl-10 text-sm outline-2 placeholder:text-gray-500"
-          placeholder="Search for products..."
-          onChange={(e) => handleSearch(e.target.value)}
-          aria-label="Search products"
-        />
-        <MagnifyingGlassIcon className="absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-gray-500 peer-focus:text-gray-900" />
+      <div className="mb-8">
+        <div className="relative">
+          <input
+            type="text"
+            placeholder="Search products..."
+            value={searchTerm}
+            onChange={(e) => handleSearch(e.target.value)}
+            className="w-full p-4 pl-12 rounded-lg border border-gray-300 focus:outline-none focus:border-blue-500"
+          />
+          <MagnifyingGlassIcon className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        {/* Filters Sidebar */}
+      <div className="grid md:grid-cols-4 gap-6">
+        {/* Sidebar with Categories and Filters */}
         <div className="md:col-span-1">
-          <div className="sticky top-4 bg-white p-4 rounded-lg shadow space-y-6">
-            {/* Availability Filter */}
-            <div>
-              <h2 className="font-bold text-lg mb-4">Disponibilité</h2>
-              <div className="flex items-center">
-                <input
-                  type="checkbox"
-                  id="available-only"
-                  className="mr-2 rounded"
-                  checked={showAvailableOnly}
-                  onChange={(e) => setShowAvailableOnly(e.target.checked)}
-                />
-                <label 
-                  htmlFor="available-only"
-                  className="text-sm cursor-pointer hover:text-gray-700"
-                >
-                  Produits en stock uniquement
-                </label>
-              </div>
-            </div>
-
-            {/* Categories */}
-            <div>
-              <h2 className="font-bold text-lg mb-4">Categories</h2>
+          <div className="sticky top-4 bg-white p-4 rounded-lg shadow">
+            <h2 className="font-bold text-lg mb-4">Categories</h2>
+            {loading ? (
+              <div>Loading categories...</div>
+            ) : (
               <ul className="space-y-2">
                 {categories.map((category) => (
                   <li key={category.id} className="flex items-center">
@@ -154,53 +146,63 @@ export default function Search() {
                       checked={selectedCategories.includes(category.id)}
                       onChange={() => handleCategoryChange(category.id)}
                     />
-                    <label 
+                    <label
                       htmlFor={`category-${category.id}`}
-                      className="text-sm cursor-pointer hover:text-gray-700"
+                      className="text-sm cursor-pointer"
                     >
                       {category.nom}
                     </label>
                   </li>
                 ))}
               </ul>
+            )}
+
+            {/* Availability Filter */}
+            <div className="mt-6 pt-6 border-t border-gray-200">
+              <h2 className="font-bold text-lg mb-4">Availability</h2>
+              <div className="flex items-center">
+                <input
+                  type="checkbox"
+                  id="in-stock"
+                  className="mr-2 rounded"
+                  checked={showInStock}
+                  onChange={(e) => setShowInStock(e.target.checked)}
+                />
+                <label
+                  htmlFor="in-stock"
+                  className="text-sm cursor-pointer"
+                >
+                  In Stock Only
+                </label>
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Results Grid */}
+        {/* Products Grid */}
         <div className="md:col-span-3">
-          {loading ? (
-            <div className="flex justify-center items-center h-40">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
-            </div>
-          ) : error ? (
-            <div className="bg-red-50 p-4 rounded-lg text-red-600">
-              {error}
-            </div>
+          {error ? (
+            <div className="text-red-500">{error}</div>
+          ) : loading ? (
+            <div>Loading products...</div>
           ) : (
-            <>
-              <div className="mb-4 text-sm text-gray-600">
-                {filteredResults.length} produit{filteredResults.length !== 1 ? 's' : ''} trouvé{filteredResults.length !== 1 ? 's' : ''}
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {filteredResults.length > 0 ? (
-                  filteredResults.map((product) => (
-                    <ProductCard
-                      key={product.id}
-                      productId={product.id}
-                      productName={product.nom}
-                      productPrice={product.prix}
-                      description={product.description}
-                      stock={product.quantite}
-                    />
-                  ))
-                ) : (
-                  <div className="col-span-full text-center py-10 text-gray-500">
-                    Aucun produit trouvé.
-                  </div>
-                )}
-              </div>
-            </>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {filteredProducts.length > 0 ? (
+                filteredProducts.map((product) => (
+                  <ProductCard
+                    key={product.id}
+                    productId={product.id}
+                    productName={product.nom}
+                    productPrice={product.prix}
+                    stock={product.quantite}
+                  />
+                ))
+              ) : (
+                <div className="col-span-full text-center text-gray-500">
+                  No products found.
+                </div>
+              )}
+            </div>
           )}
         </div>
       </div>
