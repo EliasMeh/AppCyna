@@ -7,7 +7,7 @@ const TextDyna = () => {
   useEffect(() => {
     async function fetchText() {
       try {
-        const response = await fetch('https://localhost:3000/api/text');
+        const response = await fetch('/api/text');
         const data = await response.json();
         setTextaffichable(data.content);
       } catch (error) {

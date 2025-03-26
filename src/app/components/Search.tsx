@@ -26,6 +26,7 @@ export default function Search() {
   const [results, setResults] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [selectedCategories, setSelectedCategories] = useState<number[]>([]);
+  const [showAvailableOnly, setShowAvailableOnly] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -92,11 +93,12 @@ export default function Search() {
     });
   }
 
-  const filteredResults = selectedCategories.length
-    ? results.filter(product => 
-        product.categoryId && selectedCategories.includes(product.categoryId)
-      )
-    : results;
+  const filteredResults = results.filter(product => {
+    const matchesCategory = selectedCategories.length === 0 || 
+      (product.categoryId && selectedCategories.includes(product.categoryId));
+    const matchesAvailability = !showAvailableOnly || product.quantite > 0;
+    return matchesCategory && matchesAvailability;
+  });
 
   return (
     <div className="container mx-auto p-4">
@@ -116,29 +118,52 @@ export default function Search() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        {/* Categories Sidebar */}
+        {/* Filters Sidebar */}
         <div className="md:col-span-1">
-          <div className="sticky top-4 bg-white p-4 rounded-lg shadow">
-            <h2 className="font-bold text-lg mb-4">Categories</h2>
-            <ul className="space-y-2">
-              {categories.map((category) => (
-                <li key={category.id} className="flex items-center">
-                  <input
-                    type="checkbox"
-                    id={`category-${category.id}`}
-                    className="mr-2 rounded"
-                    checked={selectedCategories.includes(category.id)}
-                    onChange={() => handleCategoryChange(category.id)}
-                  />
-                  <label 
-                    htmlFor={`category-${category.id}`}
-                    className="text-sm cursor-pointer"
-                  >
-                    {category.nom}
-                  </label>
-                </li>
-              ))}
-            </ul>
+          <div className="sticky top-4 bg-white p-4 rounded-lg shadow space-y-6">
+            {/* Availability Filter */}
+            <div>
+              <h2 className="font-bold text-lg mb-4">Disponibilité</h2>
+              <div className="flex items-center">
+                <input
+                  type="checkbox"
+                  id="available-only"
+                  className="mr-2 rounded"
+                  checked={showAvailableOnly}
+                  onChange={(e) => setShowAvailableOnly(e.target.checked)}
+                />
+                <label 
+                  htmlFor="available-only"
+                  className="text-sm cursor-pointer hover:text-gray-700"
+                >
+                  Produits en stock uniquement
+                </label>
+              </div>
+            </div>
+
+            {/* Categories */}
+            <div>
+              <h2 className="font-bold text-lg mb-4">Categories</h2>
+              <ul className="space-y-2">
+                {categories.map((category) => (
+                  <li key={category.id} className="flex items-center">
+                    <input
+                      type="checkbox"
+                      id={`category-${category.id}`}
+                      className="mr-2 rounded"
+                      checked={selectedCategories.includes(category.id)}
+                      onChange={() => handleCategoryChange(category.id)}
+                    />
+                    <label 
+                      htmlFor={`category-${category.id}`}
+                      className="text-sm cursor-pointer hover:text-gray-700"
+                    >
+                      {category.nom}
+                    </label>
+                  </li>
+                ))}
+              </ul>
+            </div>
           </div>
         </div>
 
@@ -153,24 +178,29 @@ export default function Search() {
               {error}
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {filteredResults.length > 0 ? (
-                filteredResults.map((product) => (
-                  <ProductCard
-                    key={product.id}
-                    productId={product.id}
-                    productName={product.nom}
-                    productPrice={product.prix}
-                    description={product.description}
-                    stock={product.quantite}
-                  />
-                ))
-              ) : (
-                <div className="col-span-full text-center py-10 text-gray-500">
-                  No products found.
-                </div>
-              )}
-            </div>
+            <>
+              <div className="mb-4 text-sm text-gray-600">
+                {filteredResults.length} produit{filteredResults.length !== 1 ? 's' : ''} trouvé{filteredResults.length !== 1 ? 's' : ''}
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {filteredResults.length > 0 ? (
+                  filteredResults.map((product) => (
+                    <ProductCard
+                      key={product.id}
+                      productId={product.id}
+                      productName={product.nom}
+                      productPrice={product.prix}
+                      description={product.description}
+                      stock={product.quantite}
+                    />
+                  ))
+                ) : (
+                  <div className="col-span-full text-center py-10 text-gray-500">
+                    Aucun produit trouvé.
+                  </div>
+                )}
+              </div>
+            </>
           )}
         </div>
       </div>

@@ -2,6 +2,7 @@ import React from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import Image from 'next/image';
+import ButtonBot from './ButtonBot';
 
 export default function Footer() {
   return (
@@ -23,6 +24,9 @@ export default function Footer() {
             height={50}
           />
         </Link>
+      </div>
+      <div className="absolute bottom-4 right-4">
+        <ButtonBot />
       </div>
     </footer>
   );
