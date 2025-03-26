@@ -1,33 +1,40 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
-// Cache duration in seconds
-const CACHE_MAX_AGE = 60 * 60 * 24; // 24 hours
-const STALE_WHILE_REVALIDATE = 60 * 60; // 1 hour
+// Cache configuration
+const REVALIDATE_TIME = 3600; // 1 hour in seconds
+
+// Route segment config
+export const runtime = 'nodejs';
+export const fetchCache = 'force-cache';
+export const revalidate = REVALIDATE_TIME;
+
+let requestCount = 0;
+
 
 export async function GET(request: NextRequest) {
+    requestCount++;
+    const startTime = performance.now();
     const url = new URL(request.url);
     const produitId = url.pathname.split('/').pop();
 
+    console.log(`\n🔍 [Cache Debug] Request #${requestCount} for image ${produitId}`, {
+        timestamp: new Date().toISOString(),
+        isCacheEnabled: true,
+        revalidateTime: REVALIDATE_TIME,
+        headers: Object.fromEntries(request.headers),
+    });
+
     if (!produitId || isNaN(Number(produitId))) {
-        return new Response(
-            JSON.stringify({ error: 'Invalid product ID' }), 
-            { 
-                status: 400,
-                headers: {
-                    'Content-Type': 'application/json',
-                }
-            }
-        );
+        console.warn(`⚠️ Invalid product ID requested: ${produitId}`);
+        return Response.json({ success: false, error: 'Invalid ID' }, { status: 200 });
     }
 
     try {
         const image = await prisma.image.findFirst({
-            where: { 
-                produitId: Number(produitId) 
-            },
+            where: { produitId: Number(produitId) },
             select: {
                 id: true,
                 data: true,
@@ -35,65 +42,52 @@ export async function GET(request: NextRequest) {
             }
         });
 
-        if (!image || !image.data) {
-            console.log(`No image found for product ${produitId}`);
-            return new Response(
-                JSON.stringify({ 
-                    error: 'Image not found',
-                    productId: produitId 
-                }), 
-                { 
-                    status: 404,
-                    headers: {
-                        'Content-Type': 'application/json',
-                    }
-                }
-            );
+        const endTime = performance.now();
+        const duration = endTime - startTime;
+
+        if (!image?.data) {
+            console.log(`❌ No image found for product ${produitId}`);
+            return Response.json({ success: true, data: null }, { status: 200 });
         }
 
-        // Log successful image fetch
-        console.log(`Found image for product ${produitId}:`, {
-            imageId: image.id,
-            hasData: !!image.data,
-            dataLength: image.data.length,
-            firstBytes: Array.from(image.data.slice(0, 4))
+        console.log(`✅ Image found for product ${produitId}:`, {
+            requestNumber: requestCount,
+            duration: `${duration.toFixed(2)}ms`,
+            dataSize: image.data.length,
+            timestamp: new Date().toISOString()
         });
 
         return new Response(
             JSON.stringify({
+                success: true,
                 id: image.id,
                 data: image.data,
-                produitId: image.produitId
-            }), 
-            { 
+                produitId: image.produitId,
+                debug: {
+                    requestNumber: requestCount,
+                    duration: duration.toFixed(2),
+                    timestamp: new Date().toISOString()
+                }
+            }),
+            {
                 status: 200,
                 headers: {
                     'Content-Type': 'application/json',
-                    'Cache-Control': `public, max-age=${CACHE_MAX_AGE}, s-maxage=${CACHE_MAX_AGE}, stale-while-revalidate=${STALE_WHILE_REVALIDATE}`,
-                    'CDN-Cache-Control': `public, max-age=${CACHE_MAX_AGE}`,
-                    'Vercel-CDN-Cache-Control': `public, max-age=${CACHE_MAX_AGE}`,
-                    'ETag': `"image-${image.id}"`,
+                    'Cache-Control': `public, max-age=${REVALIDATE_TIME}, s-maxage=${REVALIDATE_TIME}, stale-while-revalidate=59`,
+                    'CDN-Cache-Control': `public, max-age=${REVALIDATE_TIME}`,
+                    'Next-Cache-Tags': `image-${produitId}`,
+                    'X-Cache-Debug': `Request #${requestCount}`,
+                    'X-Response-Time': `${duration.toFixed(2)}ms`,
+                    'Vary': 'Accept'
                 }
             }
         );
 
     } catch (error) {
-        console.error('Error fetching image:', {
-            productId: produitId,
-            error: error instanceof Error ? error.message : 'Unknown error'
-        });
-
-        return new Response(
-            JSON.stringify({ 
-                error: 'Failed to fetch image',
-                details: error instanceof Error ? error.message : 'Unknown error'
-            }), 
-            { 
-                status: 500,
-                headers: {
-                    'Content-Type': 'application/json',
-                }
-            }
+        console.error('❌ Error fetching image:', error);
+        return Response.json(
+            { success: false, error: 'Server error' },
+            { status: 200 }
         );
     } finally {
         await prisma.$disconnect();
