@@ -1,5 +1,6 @@
 'use client'
 import React, { useState, useEffect } from 'react'
+import { ChevronUp, ChevronDown } from 'lucide-react'
 
 const GrilleModifiable = () => {
   interface Produit {
@@ -12,6 +13,8 @@ const GrilleModifiable = () => {
   }
 
   const [products, setProducts] = useState<Produit[]>([])
+  const [sortField, setSortField] = useState<keyof Produit | null>(null);
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
 
   useEffect(() => {
     fetch('/api/produits')
@@ -47,17 +50,56 @@ const GrilleModifiable = () => {
     }
   }
 
+  const handleSort = (field: keyof Produit) => {
+    const direction = sortField === field && sortDirection === 'asc' ? 'desc' : 'asc';
+    setSortField(field);
+    setSortDirection(direction);
+    const sortedProducts = [...products].sort((a, b) => {
+      if (a[field] < b[field]) return direction === 'asc' ? -1 : 1;
+      if (a[field] > b[field]) return direction === 'asc' ? 1 : -1;
+      return 0;
+    });
+    setProducts(sortedProducts);
+  };
+
+  const SortHeader = ({ field, label }: { field: keyof Produit, label: string }) => (
+    <th 
+      className="py-2 px-4 cursor-pointer hover:bg-gray-50"
+      onClick={() => handleSort(field)}
+    >
+      <div className="flex items-center justify-between">
+        {label}
+        <div className="flex flex-col">
+          <ChevronUp 
+            className={`h-3 w-3 ${
+              sortField === field && sortDirection === 'asc' 
+                ? 'text-blue-600' 
+                : 'text-gray-400'
+            }`}
+          />
+          <ChevronDown 
+            className={`h-3 w-3 ${
+              sortField === field && sortDirection === 'desc' 
+                ? 'text-blue-600' 
+                : 'text-gray-400'
+            }`}
+          />
+        </div>
+      </div>
+    </th>
+  );
+
   return (
     <div>
       <table className="min-w-full bg-white">
         <thead>
           <tr>
-            <th className="py-2">ID</th>
-            <th className="py-2">Nom</th>
-            <th className="py-2">Prix</th>
-            <th className="py-2">Description</th>
-            <th className="py-2">Quantité</th>
-            <th className="py-2">Categorie ID</th>
+            <SortHeader field="id" label="ID" />
+            <SortHeader field="nom" label="Nom" />
+            <SortHeader field="prix" label="Prix" />
+            <SortHeader field="description" label="Description" />
+            <SortHeader field="quantite" label="Quantité" />
+            <SortHeader field="categorieId" label="Categorie ID" />
             <th className="py-2">Actions</th>
           </tr>
         </thead>

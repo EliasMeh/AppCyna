@@ -1,4 +1,4 @@
-import { NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
@@ -6,13 +6,11 @@ const prisma = new PrismaClient();
 // Cache configuration
 const REVALIDATE_TIME = 3600; // 1 hour in seconds
 
-// Route segment config
-export const runtime = 'nodejs';
-export const fetchCache = 'force-cache';
-export const revalidate = REVALIDATE_TIME;
+// Route segment config (Corrected: Using a hardcoded value instead of variable)
+export const dynamic = 'force-dynamic';
+export const revalidate = 3600; // Cache revalidation time directly set to 1 hour
 
 let requestCount = 0;
-
 
 export async function GET(request: NextRequest) {
     requestCount++;
@@ -29,7 +27,7 @@ export async function GET(request: NextRequest) {
 
     if (!produitId || isNaN(Number(produitId))) {
         console.warn(`⚠️ Invalid product ID requested: ${produitId}`);
-        return Response.json({ success: false, error: 'Invalid ID' }, { status: 200 });
+        return NextResponse.json({ success: false, error: 'Invalid ID' }, { status: 200 });
     }
 
     try {
@@ -47,7 +45,7 @@ export async function GET(request: NextRequest) {
 
         if (!image?.data) {
             console.log(`❌ No image found for product ${produitId}`);
-            return Response.json({ success: true, data: null }, { status: 200 });
+            return NextResponse.json({ success: true, data: null }, { status: 200 });
         }
 
         console.log(`✅ Image found for product ${produitId}:`, {
@@ -57,7 +55,7 @@ export async function GET(request: NextRequest) {
             timestamp: new Date().toISOString()
         });
 
-        return new Response(
+        return new NextResponse(
             JSON.stringify({
                 success: true,
                 id: image.id,
@@ -85,7 +83,7 @@ export async function GET(request: NextRequest) {
 
     } catch (error) {
         console.error('❌ Error fetching image:', error);
-        return Response.json(
+        return NextResponse.json(
             { success: false, error: 'Server error' },
             { status: 200 }
         );
