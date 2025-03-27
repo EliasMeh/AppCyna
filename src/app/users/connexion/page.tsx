@@ -62,6 +62,13 @@ const LoginPage = () => {
           <button className="mt-4 p-2 bg-blue-500 text-white rounded" type="submit">
             Connexion
           </button>
+          <button 
+            type="button"
+            onClick={() => router.push('/users/passwordforgotten')}
+            className="mt-2 text-blue-500 hover:text-blue-700 text-sm"
+          >
+            Mot de passe oublié ?
+          </button>
         </form>
       </div>
       <Footer />

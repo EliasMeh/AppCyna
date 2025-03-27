@@ -121,7 +121,7 @@ export default function Header() {
                   <Search size={24} />
                 </Button>
               </Link>
-              <Link href="/pages/panier">
+              <Link href="/pages/cart">
                 <Button className="bg-white text-gray-800 rounded-full">
                   <ShoppingBasket />
                 </Button>
