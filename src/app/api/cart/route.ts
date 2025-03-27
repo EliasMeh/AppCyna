@@ -135,9 +135,16 @@ export async function PUT(request: NextRequest) {
             return NextResponse.json({ error: 'Product not found' }, { status: 404 });
         }
 
+        // Add this logging to debug
+        console.log('Stock check:', {
+            requestedQuantity: parseInt(newQuantite),
+            availableStock: product.quantite,
+            productId: product.id
+        });
+
         if (product.quantite < parseInt(newQuantite)) {
             return NextResponse.json({ 
-                error: 'Not enough stock available' 
+                error: `Not enough stock available. Only ${product.quantite} items left.`
             }, { status: 400 });
         }
 
@@ -159,4 +166,27 @@ export async function PUT(request: NextRequest) {
         console.error('Error updating cart:', error);
         return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
+}
+
+export async function DELETE(request: NextRequest) {
+  try {
+      const { searchParams } = new URL(request.url);
+      const cartItemId = searchParams.get('cartItemId');
+
+      if (!cartItemId) {
+          return NextResponse.json({ 
+              error: 'Cart item ID is required' 
+          }, { status: 400 });
+      }
+
+      // Delete cart item
+      await prisma.panier.delete({
+          where: { id: parseInt(cartItemId) }
+      });
+
+      return NextResponse.json({ message: 'Item removed from cart' });
+  } catch (error) {
+      console.error('Error deleting cart item:', error);
+      return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
 }
