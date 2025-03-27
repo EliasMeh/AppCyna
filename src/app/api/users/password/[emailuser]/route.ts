@@ -4,14 +4,14 @@ import bcrypt from "bcrypt";
 
 const prisma = new PrismaClient();
 
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: { emailuser: string } }
-) {
+export async function PUT(request: NextRequest) {
   try {
-    const userEmail = decodeURIComponent(params.emailuser);
-    
-    // Validate email format
+    // Extraction du paramètre dynamique "emailuser" depuis l'URL
+    const emailuser = request.nextUrl.pathname.split("/").pop() ?? "";
+
+    const userEmail = decodeURIComponent(emailuser);
+
+    // Validation du format d'email
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(userEmail)) {
       return NextResponse.json(
@@ -20,6 +20,7 @@ export async function PUT(
       );
     }
 
+    // Lecture du corps de la requête
     const body = await request.json();
     const { newPassword } = body;
 
@@ -30,9 +31,9 @@ export async function PUT(
       );
     }
 
-    // Check if user exists
+    // Vérification si l'utilisateur existe
     const existingUser = await prisma.user.findUnique({
-      where: { email: userEmail }
+      where: { email: userEmail },
     });
 
     if (!existingUser) {
@@ -42,10 +43,10 @@ export async function PUT(
       );
     }
 
-    // Hash the new password
+    // Hachage du nouveau mot de passe
     const hashedPassword = await bcrypt.hash(newPassword, 10);
 
-    // Update user password
+    // Mise à jour du mot de passe de l'utilisateur
     const updatedUser = await prisma.user.update({
       where: {
         email: userEmail,
@@ -59,14 +60,15 @@ export async function PUT(
         nom: true,
         prenom: true,
         role: true,
-        // Excluding password from response
+        // Exclut le mot de passe dans la réponse pour des raisons de sécurité
       },
     });
 
+    // Réponse en cas de succès
     return NextResponse.json(
       {
         message: "Mot de passe mis à jour avec succès",
-        user: updatedUser
+        user: updatedUser,
       },
       { status: 200 }
     );
@@ -78,6 +80,7 @@ export async function PUT(
       { status: 500 }
     );
   } finally {
+    // Fermeture de la connexion à Prisma
     await prisma.$disconnect();
   }
 }
