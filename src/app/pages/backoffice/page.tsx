@@ -4,6 +4,7 @@ import GrilleModifiable from '@/app/components/backcomp/GrilleModifiable';
 import Deco from '@/app/components/backcomp/Deco';
 import { InputFile } from '@/app/components/backcomp/input-file';
 import CarouselManager from '@/app/components/backcomp/CarouselManager';
+import FallbackButton from '@/app/components/backcomp/FallbackButton';
 
 const page = () => {
   return (
@@ -11,6 +12,7 @@ const page = () => {
       <main>
         <h1>Page uniquement accessible aux ADMINISTRATEURS</h1>
         <Deco/>
+        <FallbackButton />
         <div className='flex flex-wrap'>
           <h2 className='pr-3'>Texte dynamique de la page d'accueil : </h2>
           <TextInputBack />  
