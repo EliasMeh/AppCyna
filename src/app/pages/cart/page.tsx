@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import ImagePre from '@/app/components/ImagePre';
 import Header from '@/app/communs/Header';
 import Footer from '@/app/communs/Footer';
-
+import { triggerCartUpdate } from '@/lib/events';
 
 // Update the CartItem interface to properly type the database structure
 interface CartItem {
@@ -29,6 +29,11 @@ interface User {
   email: string;
   nom: string;
   role: string;
+}
+
+// Add a new interface for product totals
+interface ProductTotals {
+  [key: string]: number;
 }
 
 // Update the helper function
@@ -57,6 +62,8 @@ export default function CartPage() {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [productTotals, setProductTotals] = useState<ProductTotals>({});
+  const [cartTotal, setCartTotal] = useState<number>(0);
   const router = useRouter();
 
   useEffect(() => {
@@ -78,6 +85,17 @@ export default function CartPage() {
         if (!response.ok) throw new Error('Failed to fetch cart');
         const data = await response.json();
         setCartItems(data);
+
+        const initialTotals: ProductTotals = {};
+        const total = data.reduce((sum: number, item: CartItem) => {
+          const itemTotal = (user ? item.produit?.prix ?? 0 : item.price ?? 0) * 
+                           (user ? item.quantite ?? 0 : item.quantity ?? 0);
+          initialTotals[user ? item.id?.toString() ?? '' : item.productId?.toString() ?? ''] = itemTotal;
+          return sum + itemTotal;
+        }, 0);
+
+        setProductTotals(initialTotals);
+        setCartTotal(total);
       } catch (error) {
         console.error('Error loading cart:', error);
         alert('Failed to load cart items');
@@ -86,6 +104,16 @@ export default function CartPage() {
       // Guest user - load from localStorage
       const guestCart = JSON.parse(localStorage.getItem('guestCart') || '[]');
       setCartItems(guestCart);
+
+      const initialTotals: ProductTotals = {};
+      const total = guestCart.reduce((sum: number, item: CartItem) => {
+        const itemTotal = (item.price ?? 0) * (item.quantity ?? 0);
+        initialTotals[item.productId?.toString() ?? ''] = itemTotal;
+        return sum + itemTotal;
+      }, 0);
+
+      setProductTotals(initialTotals);
+      setCartTotal(total);
     }
     setIsLoading(false);
   };
@@ -101,12 +129,31 @@ export default function CartPage() {
         const data = await response.json();
         
         if (!response.ok) {
-          // Show the specific error message from the server
           alert(data.error || 'Failed to update quantity');
           return;
         }
-        
-        loadCartItems();
+
+        // Update cart items with new quantity
+        const updatedCartItems = cartItems.map(cartItem =>
+          cartItem.id === item.id ? { ...cartItem, quantite: newQuantity } : cartItem
+        );
+        setCartItems(updatedCartItems);
+
+        // Update product total
+        const itemPrice = item.produit?.prix ?? 0;
+        const itemId = item.id?.toString() ?? '';
+        setProductTotals(prev => ({
+          ...prev,
+          [itemId]: itemPrice * newQuantity
+        }));
+
+        // Update cart total
+        const newTotal = updatedCartItems.reduce((total, item) => 
+          total + ((item.produit?.prix ?? 0) * (item.quantite ?? 0)), 0
+        );
+        setCartTotal(newTotal);
+        triggerCartUpdate();
+
       } catch (error) {
         console.error('Error updating quantity:', error);
         alert('Failed to update quantity');
@@ -119,8 +166,27 @@ export default function CartPage() {
           ? { ...cartItem, quantity: newQuantity }
           : cartItem
       );
+      
+      // Update localStorage
       localStorage.setItem('guestCart', JSON.stringify(updatedCart));
+      
+      // Update cart items state
       setCartItems(updatedCart);
+
+      // Update product total
+      const itemPrice = item.price ?? 0;
+      const itemId = item.productId?.toString() ?? '';
+      setProductTotals(prev => ({
+        ...prev,
+        [itemId]: itemPrice * newQuantity
+      }));
+
+      // Update cart total
+      const newTotal: number = updatedCart.reduce((total: number, item: CartItem) => 
+        total + ((item.price ?? 0) * (item.quantity ?? 0)), 0
+      );
+      setCartTotal(newTotal);
+      triggerCartUpdate();
     }
   };
 
@@ -213,14 +279,16 @@ export default function CartPage() {
                 </div>
               </div>
               <div className="font-bold">
-                €{((user ? item.produit?.prix ?? 0 : item.price ?? 0) * (user ? item.quantite ?? 0 : item.quantity ?? 0))}
+                €{productTotals[user ? item.id?.toString() ?? '' : item.productId?.toString() ?? ''] ?? 
+                  ((user ? item.produit?.prix ?? 0 : item.price ?? 0) * 
+                  (user ? item.quantite ?? 0 : item.quantity ?? 0))}
               </div>
             </div>
           ))}
           
           <div className="mt-6 text-right">
             <div className="text-xl font-bold">
-              Total: €{calculateTotal().toFixed(2)}
+              Total: €{cartTotal.toFixed(2)}
             </div>
             <button
               onClick={() => router.push('/checkout')}

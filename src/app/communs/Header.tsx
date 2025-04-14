@@ -6,6 +6,7 @@ import { redirect, useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Navbar, NavbarItem } from '@nextui-org/react';
 import { Search, ShoppingBasket } from 'lucide-react';
+import { CART_UPDATED_EVENT } from '@/lib/events';
 
 interface User {
   id: number;
@@ -16,6 +17,7 @@ interface User {
 
 export default function Header() {
   const [user, setUser] = useState<User | null>(null);
+  const [cartCount, setCartCount] = useState(0);
   const router = useRouter();
 
   useEffect(() => {
@@ -38,7 +40,53 @@ export default function Header() {
       console.error('Error parsing user data:', error);
       localStorage.removeItem('user');
     }
+    updateCartCount();
   }, []);
+
+  const updateCartCount = async () => {
+    try {
+      const storedUser = localStorage.getItem('user');
+      if (storedUser) {
+        // Logged in user - get count from API
+        const user = JSON.parse(storedUser);
+        const response = await fetch(`/api/cart?userId=${user.id}`);
+        if (!response.ok) throw new Error('Failed to fetch cart');
+        const cartItems = await response.json();
+        // Sum up quantities of all items
+        const totalCount = cartItems.reduce((sum: number, item: any) => sum + (item.quantite || 0), 0);
+        setCartCount(totalCount);
+      } else {
+        // Guest user - get count from localStorage
+        const guestCart = JSON.parse(localStorage.getItem('guestCart') || '[]');
+        // Sum up quantities of all items
+        const totalCount = guestCart.reduce((sum: number, item: any) => sum + (item.quantity || 0), 0);
+        setCartCount(totalCount);
+      }
+    } catch (error) {
+      console.error('Error updating cart count:', error);
+      setCartCount(0);
+    }
+  };
+
+  useEffect(() => {
+    const handleStorageChange = () => {
+      if (!user) {
+        updateCartCount();
+      }
+    };
+    
+    const handleCartUpdate = () => {
+      updateCartCount();
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    window.addEventListener(CART_UPDATED_EVENT, handleCartUpdate);
+    
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener(CART_UPDATED_EVENT, handleCartUpdate);
+    };
+  }, [user]);
 
   const handleLogout = () => {
     localStorage.removeItem('user');
@@ -122,8 +170,13 @@ export default function Header() {
                 </Button>
               </Link>
               <Link href="/pages/cart">
-                <Button className="bg-white text-gray-800 rounded-full">
+                <Button className="bg-white text-gray-800 rounded-full relative pr-2 pl-2">
                   <ShoppingBasket />
+                  {cartCount > 0 && (
+                    <span className="absolute -top-2 -right-2 translate-x-1/2 -translate-y-1/2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                      {cartCount}
+                    </span>
+                  )}
                 </Button>
               </Link>
             </div>

@@ -1,6 +1,7 @@
 'use client';
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { triggerCartUpdate } from '@/lib/events';
 
 interface AddToCartProps {
   productId: number;
@@ -62,6 +63,7 @@ const AddToCart = ({ productId, productName, productPrice }: AddToCartProps) => 
 
         router.refresh();
         alert('Product added to cart!');
+        triggerCartUpdate();
       } catch (error) {
         console.error('Error adding to cart:', error);
         alert('Failed to add to cart');
@@ -85,6 +87,7 @@ const AddToCart = ({ productId, productName, productPrice }: AddToCartProps) => 
 
       localStorage.setItem('guestCart', JSON.stringify(existingCart));
       alert('Product added to cart! (Guest mode)');
+      triggerCartUpdate();
     }
     
     setIsLoading(false);
