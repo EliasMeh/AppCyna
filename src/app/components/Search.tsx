@@ -33,12 +33,19 @@ export default function Search() {
   const [results, setResults] = useState<Product[]>([]);
   const [showInStock, setShowInStock] = useState(false);
 
-  // Rest of your client-side logic...
   useEffect(() => {
     fetchCategories();
+
+    // Check for pre-selected category in URL
+    const params = new URLSearchParams(window.location.search);
+    const preSelectedCategory = params.get('selectedCategory');
+
+    if (preSelectedCategory) {
+      const categoryId = parseInt(preSelectedCategory);
+      setSelectedCategories([categoryId]);
+    }
   }, []);
 
-  // Your existing fetch functions and handlers...
   async function fetchCategories() {
     setLoading(true);
     setError(null);

@@ -5,6 +5,7 @@ import Deco from '@/app/components/backcomp/Deco';
 import { InputFile } from '@/app/components/backcomp/input-file';
 import CarouselManager from '@/app/components/backcomp/CarouselManager';
 import FallbackButton from '@/app/components/backcomp/FallbackButton';
+import ModifGrilleCategorie from '@/app/components/backcomp/ModifGrilleCategorie';
 
 const page = () => {
   return (
@@ -27,6 +28,9 @@ const page = () => {
         </div>
         <div>
           <InputFile />
+        </div>
+        <div>
+          <ModifGrilleCategorie />
         </div>
       </main>
     </>

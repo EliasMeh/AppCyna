@@ -6,6 +6,7 @@ import TextDyna from './components/TextDyna';
 import { Button } from '../components/ui/button';
 import Grille from './components/Grille';
 import Carousel from './components/HomeComps/Carousel';
+import GrilleCategorie from './components/HomeComps/GrilleCategorie';
 
 export default function Home() {
   return (
@@ -16,6 +17,7 @@ export default function Home() {
         <Carousel />
         <TextDyna />
         <Grille />
+        <GrilleCategorie />
 
         <p>a</p>
         <p>a</p>
