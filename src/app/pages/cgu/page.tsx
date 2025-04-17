@@ -1,6 +1,6 @@
-import React from "react";
-import Header from "../../communs/Header";
-import Footer from "../../communs/Footer";
+import React from 'react';
+import Header from '../../communs/Header';
+import Footer from '../../communs/Footer';
 
 const cgu = () => {
   return (
@@ -19,10 +19,10 @@ const cgu = () => {
           conditions générales.
         </p>
         <p>
-          <span className="font-bold">Prestations et services :</span>{" "}
+          <span className="font-bold">Prestations et services :</span>{' '}
           <a href="https://www.cyna-it.fr" className="text-blue-500 underline">
             https://www.cyna-it.fr
-          </a>{" "}
+          </a>{' '}
           met à disposition des clients :
         </p>
         <p>
@@ -33,10 +33,10 @@ const cgu = () => {
         <p>
           <span className="font-bold">Informations clients :</span> ci-après
           dénommé « information (s) » qui correspondent à l’ensemble des données
-          personnelles susceptibles d’être détenues par{" "}
+          personnelles susceptibles d’être détenues par{' '}
           <a href="https://www.cyna-it.fr" className="text-blue-500 underline">
             https://www.cyna-it.fr
-          </a>{" "}
+          </a>{' '}
           pour la gestion de votre compte, de la gestion de la relation client
           et à des fins d’analyses et de statistiques.
         </p>

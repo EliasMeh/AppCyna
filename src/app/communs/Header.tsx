@@ -1,4 +1,4 @@
-'use client'
+'use client';
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -15,6 +15,19 @@ interface User {
   role: string;
 }
 
+interface CartItem {
+  quantite?: number;
+  quantity?: number;
+}
+
+interface LoggedInCartItem extends CartItem {
+  quantite: number;
+}
+
+interface GuestCartItem extends CartItem {
+  quantity: number;
+}
+
 export default function Header() {
   const [user, setUser] = useState<User | null>(null);
   const [cartCount, setCartCount] = useState(0);
@@ -25,11 +38,13 @@ export default function Header() {
       const storedUser = localStorage.getItem('user');
       if (storedUser) {
         const parsedUser = JSON.parse(storedUser);
-        if (parsedUser && 
-            typeof parsedUser.id === 'number' && 
-            typeof parsedUser.email === 'string' &&
-            typeof parsedUser.nom === 'string' &&
-            typeof parsedUser.role === 'string') {
+        if (
+          parsedUser &&
+          typeof parsedUser.id === 'number' &&
+          typeof parsedUser.email === 'string' &&
+          typeof parsedUser.nom === 'string' &&
+          typeof parsedUser.role === 'string'
+        ) {
           setUser(parsedUser);
         } else {
           console.warn('Invalid user data structure in localStorage');
@@ -53,13 +68,19 @@ export default function Header() {
         if (!response.ok) throw new Error('Failed to fetch cart');
         const cartItems = await response.json();
         // Sum up quantities of all items
-        const totalCount = cartItems.reduce((sum: number, item: any) => sum + (item.quantite || 0), 0);
+        const totalCount = cartItems.reduce(
+          (sum: number, item: LoggedInCartItem) => sum + (item.quantite || 0),
+          0
+        );
         setCartCount(totalCount);
       } else {
         // Guest user - get count from localStorage
         const guestCart = JSON.parse(localStorage.getItem('guestCart') || '[]');
         // Sum up quantities of all items
-        const totalCount = guestCart.reduce((sum: number, item: any) => sum + (item.quantity || 0), 0);
+        const totalCount = guestCart.reduce(
+          (sum: number, item: GuestCartItem) => sum + (item.quantity || 0),
+          0
+        );
         setCartCount(totalCount);
       }
     } catch (error) {
@@ -74,14 +95,14 @@ export default function Header() {
         updateCartCount();
       }
     };
-    
+
     const handleCartUpdate = () => {
       updateCartCount();
     };
 
     window.addEventListener('storage', handleStorageChange);
     window.addEventListener(CART_UPDATED_EVENT, handleCartUpdate);
-    
+
     return () => {
       window.removeEventListener('storage', handleStorageChange);
       window.removeEventListener(CART_UPDATED_EVENT, handleCartUpdate);
@@ -95,27 +116,27 @@ export default function Header() {
   };
 
   return (
-    <header className="sticky top-0 z-50 bg-red-700 text-white rounded">
-      <div className="bg-customViolet rounded-lg p-2">
+    <header className="sticky top-0 z-50 rounded bg-red-700 text-white">
+      <div className="rounded-lg bg-customViolet p-2">
         <Navbar isBordered className="rounded-lg">
-          <div className="flex items-center justify-between w-full">
+          <div className="flex w-full items-center justify-between">
             <div className="flex items-center">
               <Link href="/" passHref>
-                <div className="flex items-center cursor-pointer">
+                <div className="flex cursor-pointer items-center">
                   <Image
                     src="/assets/cynalogo.png"
                     alt="cynaLogo"
                     width={50}
                     height={50}
-                    className="rounded-full mt-6 mb-6"
+                    className="mb-6 mt-6 rounded-full"
                   />
-                  <h1 className="font-bold text-inherit ml-2 text-2xl">Cyna</h1>
+                  <h1 className="ml-2 text-2xl font-bold text-inherit">Cyna</h1>
                 </div>
               </Link>
             </div>
 
-            <div className="flex-1 flex justify-center gap-4">
-              {user && user.role === "ADMIN" ? (
+            <div className="flex flex-1 justify-center gap-4">
+              {user && user.role === 'ADMIN' ? (
                 <>
                   <NavbarItem className="list-none">
                     <p className="font-semibold">Welcome, {user.nom}!</p>
@@ -124,9 +145,9 @@ export default function Header() {
                     <Button onClick={handleLogout} className="bg-gray-700">
                       Logout
                     </Button>
-                    <Button 
-                      onClick={() => router.push('/pages/backoffice')} 
-                      className="bg-gray-700 ml-2"
+                    <Button
+                      onClick={() => router.push('/pages/backoffice')}
+                      className="ml-2 bg-gray-700"
                     >
                       Back Office
                     </Button>
@@ -165,15 +186,15 @@ export default function Header() {
 
             <div className="flex items-center">
               <Link href="/pages/recherche">
-                <Button className="bg-white text-gray-800 rounded-full mr-1">
+                <Button className="mr-1 rounded-full bg-white text-gray-800">
                   <Search size={24} />
                 </Button>
               </Link>
               <Link href="/pages/cart">
-                <Button className="bg-white text-gray-800 rounded-full relative pr-2 pl-2">
+                <Button className="relative rounded-full bg-white pl-2 pr-2 text-gray-800">
                   <ShoppingBasket />
                   {cartCount > 0 && (
-                    <span className="absolute -top-2 -right-2 translate-x-1/2 -translate-y-1/2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                    <span className="absolute -right-2 -top-2 flex h-5 w-5 -translate-y-1/2 translate-x-1/2 items-center justify-center rounded-full bg-red-500 text-xs text-white">
                       {cartCount}
                     </span>
                   )}

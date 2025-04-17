@@ -21,7 +21,7 @@ export default function CarouselManager() {
       console.log('Submitting form data:', {
         fileName: selectedFile.name,
         title,
-        order: String(order)
+        order: String(order),
       });
 
       const response = await fetch('/api/carousel', {
@@ -54,10 +54,10 @@ export default function CarouselManager() {
 
   return (
     <div className="p-4">
-      <h1 className="text-2xl font-bold mb-4">Carousel Image Manager</h1>
+      <h1 className="mb-4 text-2xl font-bold">Carousel Image Manager</h1>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="block mb-2">Image</label>
+          <label className="mb-2 block">Image</label>
           <input
             type="file"
             accept="image/*"
@@ -67,28 +67,28 @@ export default function CarouselManager() {
           />
         </div>
         <div>
-          <label className="block mb-2">Title</label>
+          <label className="mb-2 block">Title</label>
           <input
             type="text"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            className="block w-full p-2 border rounded"
+            className="block w-full rounded border p-2"
           />
         </div>
         <div>
-          <label className="block mb-2">Order (0-2)</label>
+          <label className="mb-2 block">Order (0-2)</label>
           <input
             type="number"
             min={0}
             max={2}
             value={order}
             onChange={handleOrderChange}
-            className="block w-full p-2 border rounded"
+            className="block w-full rounded border p-2"
             required
           />
         </div>
-        <Button 
-          type="submit" 
+        <Button
+          type="submit"
           disabled={!selectedFile || order < 0 || order > 2}
         >
           Upload Image

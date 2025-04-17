@@ -67,40 +67,46 @@ export default function Carousel() {
     }
   };
 
-  const getImageSrc = (imageData: CarouselImage['data'], contentType: ImageType) => {
+  const getImageSrc = (
+    imageData: CarouselImage['data'],
+    contentType: ImageType
+  ) => {
     if (!imageData?.data) return null;
 
     try {
-        // Convert to Uint8Array if it's not already
-        const byteArray = imageData.data instanceof Uint8Array
-            ? imageData.data
-            : new Uint8Array(imageData.data);
+      // Convert to Uint8Array if it's not already
+      const byteArray =
+        imageData.data instanceof Uint8Array
+          ? imageData.data
+          : new Uint8Array(imageData.data);
 
-        const binaryString = Array.from(byteArray)
-            .map(b => String.fromCharCode(b))
-            .join('');
-        
-        return `data:${getMimeType(contentType)};base64,${btoa(binaryString)}`;
+      const binaryString = Array.from(byteArray)
+        .map((b) => String.fromCharCode(b))
+        .join('');
+
+      return `data:${getMimeType(contentType)};base64,${btoa(binaryString)}`;
     } catch (error) {
-        console.error('Conversion error:', error);
-        return null;
+      console.error('Conversion error:', error);
+      return null;
     }
   };
 
   if (isLoading) {
-    return <div className="relative w-full h-[400px] bg-gray-200 animate-pulse rounded-lg" />;
+    return (
+      <div className="relative h-[400px] w-full animate-pulse rounded-lg bg-gray-200" />
+    );
   }
 
   if (images.length === 0) {
     return (
-      <div className="relative w-full h-[400px] bg-gray-200 rounded-lg flex items-center justify-center">
+      <div className="relative flex h-[400px] w-full items-center justify-center rounded-lg bg-gray-200">
         <p className="text-gray-500">No images available</p>
       </div>
     );
   }
 
   return (
-    <div className="relative w-full h-[400px] overflow-hidden rounded-lg bg-gray-100">
+    <div className="relative h-[400px] w-full overflow-hidden rounded-lg bg-gray-100">
       {images.map((image, index) => {
         const imageSrc = getImageSrc(image.data, image.contentType);
         if (!imageSrc) {
@@ -124,13 +130,13 @@ export default function Carousel() {
               className="z-20 select-none"
               sizes="100vw"
               unoptimized // This line is crucial
-              onError={(e) => console.error("Image load error:", image.id, e)}
+              onError={(e) => console.error('Image load error:', image.id, e)}
             />
           </div>
         );
       })}
 
-      <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-2 z-30">
+      <div className="absolute bottom-4 left-0 right-0 z-30 flex justify-center gap-2">
         {images.map((_, index) => {
           const isActive = index === currentIndex;
 
@@ -140,9 +146,9 @@ export default function Carousel() {
               onClick={() => {
                 setCurrentIndex(index);
               }}
-              className={`w-3 h-3 rounded-full transition-colors duration-200 ${
+              className={`h-3 w-3 rounded-full transition-colors duration-200 ${
                 isActive ? 'bg-white' : 'bg-white/50'
-              } hover:bg-white/75 shadow-md`}
+              } shadow-md hover:bg-white/75`}
               aria-label={`Go to slide ${index + 1}`}
               aria-current={isActive ? 'true' : 'false'}
             />

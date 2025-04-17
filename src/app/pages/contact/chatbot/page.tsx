@@ -29,7 +29,7 @@ export default function ChatbotPage() {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: 1,
-      text: "Hello! How can I help you today?",
+      text: 'Hello! How can I help you today?',
       sender: 'bot',
       timestamp: formatTimestamp(new Date().toISOString()),
     },
@@ -60,14 +60,14 @@ export default function ChatbotPage() {
     };
 
     // Update messages with user message
-    setMessages(prevMessages => [...prevMessages, newUserMessage]);
-    
+    setMessages((prevMessages) => [...prevMessages, newUserMessage]);
+
     // Clear input after adding message
     setInputMessage('');
 
     // Add bot response using the updated state
     setTimeout(() => {
-      setMessages(prevMessages => {
+      setMessages((prevMessages) => {
         const botMessage: Message = {
           id: prevMessages.length + 1,
           text: "I'm a demo chatbot. I'll be replaced with real responses soon!",
@@ -83,13 +83,15 @@ export default function ChatbotPage() {
     <>
       <Header />
       <div className="container mx-auto px-4 py-8">
-        <div className="max-w-2xl mx-auto">
-          <div className="bg-white rounded-lg shadow-lg overflow-hidden">
+        <div className="mx-auto max-w-2xl">
+          <div className="overflow-hidden rounded-lg bg-white shadow-lg">
             <div className="bg-blue-600 p-4">
-              <h1 className="text-white text-xl font-semibold">Customer Support</h1>
+              <h1 className="text-xl font-semibold text-white">
+                Customer Support
+              </h1>
             </div>
 
-            <div className="h-[500px] overflow-y-auto p-4 space-y-4">
+            <div className="h-[500px] space-y-4 overflow-y-auto p-4">
               {messages.map((message) => (
                 <div
                   key={message.id}
@@ -106,8 +108,10 @@ export default function ChatbotPage() {
                   >
                     <p>{message.text}</p>
                     <p
-                      className={`text-xs mt-1 ${
-                        message.sender === 'user' ? 'text-blue-100' : 'text-gray-500'
+                      className={`mt-1 text-xs ${
+                        message.sender === 'user'
+                          ? 'text-blue-100'
+                          : 'text-gray-500'
                       }`}
                     >
                       {message.timestamp}
@@ -118,20 +122,20 @@ export default function ChatbotPage() {
               <div ref={messagesEndRef} />
             </div>
 
-            <form onSubmit={handleSubmit} className="p-4 border-t">
+            <form onSubmit={handleSubmit} className="border-t p-4">
               <div className="flex space-x-4">
                 <input
                   type="text"
                   value={inputMessage}
                   onChange={(e) => setInputMessage(e.target.value)}
                   placeholder="Type your message..."
-                  className="flex-1 p-2 border rounded-lg focus:outline-none focus:border-blue-500"
+                  className="flex-1 rounded-lg border p-2 focus:border-blue-500 focus:outline-none"
                   aria-label="Type your message"
                 />
                 <button
                   type="submit"
-                  className={`bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors ${
-                    !inputMessage.trim() && 'opacity-50 cursor-not-allowed'
+                  className={`rounded-lg bg-blue-600 px-6 py-2 text-white transition-colors hover:bg-blue-700 ${
+                    !inputMessage.trim() && 'cursor-not-allowed opacity-50'
                   }`}
                   disabled={!inputMessage.trim()}
                 >

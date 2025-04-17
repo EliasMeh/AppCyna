@@ -11,12 +11,12 @@ export default function Home() {
   return (
     <main>
       <Header />
-      <div className='pl-2'>
+      <div className="pl-2">
         <h1>Page principale</h1>
         <Carousel />
         <TextDyna />
         <Grille />
-        
+
         <p>a</p>
         <p>a</p>
         <p>a</p>
@@ -43,7 +43,6 @@ export default function Home() {
         <div>
           <Button variant="outline">Click Me</Button>
         </div>
-        
       </div>
       <Footer />
     </main>

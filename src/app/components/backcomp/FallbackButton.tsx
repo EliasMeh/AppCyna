@@ -1,22 +1,22 @@
-'use client'
-import React from 'react'
-import { useRouter } from 'next/navigation'
+'use client';
+import React from 'react';
+import { useRouter } from 'next/navigation';
 
 const Deco = () => {
-    const router = useRouter()
-    
-    const handleFallback = () => {
-        router.push('/')
-    }
+  const router = useRouter();
 
-    return (
-        <button 
-            onClick={handleFallback}
-            className="bg-customViolet text-white p-2 rounded-lg"
-        >
-            Main Page
-        </button>
-    )
-}
+  const handleFallback = () => {
+    router.push('/');
+  };
 
-export default Deco
+  return (
+    <button
+      onClick={handleFallback}
+      className="rounded-lg bg-customViolet p-2 text-white"
+    >
+      Main Page
+    </button>
+  );
+};
+
+export default Deco;

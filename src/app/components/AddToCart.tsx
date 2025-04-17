@@ -23,7 +23,11 @@ interface User {
   role: string;
 }
 
-const AddToCart = ({ productId, productName, productPrice }: AddToCartProps) => {
+const AddToCart = ({
+  productId,
+  productName,
+  productPrice,
+}: AddToCartProps) => {
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -37,11 +41,15 @@ const AddToCart = ({ productId, productName, productPrice }: AddToCartProps) => 
 
   const addToCart = async () => {
     setIsLoading(true);
-    
+
     if (user?.id) {
       try {
-        console.log('Adding to cart:', { userId: user.id, productId, quantite: 1 });
-        
+        console.log('Adding to cart:', {
+          userId: user.id,
+          productId,
+          quantite: 1,
+        });
+
         const response = await fetch('/api/cart', {
           method: 'POST',
           headers: {
@@ -50,8 +58,8 @@ const AddToCart = ({ productId, productName, productPrice }: AddToCartProps) => 
           body: JSON.stringify({
             userId: user.id,
             produitId: productId,
-            quantite: 1
-          })
+            quantite: 1,
+          }),
         });
 
         const data = await response.json();
@@ -70,10 +78,14 @@ const AddToCart = ({ productId, productName, productPrice }: AddToCartProps) => 
       }
     } else {
       // Handle guest user with localStorage
-      const existingCart = JSON.parse(localStorage.getItem('guestCart') || '[]') as CartItem[];
-      
-      const existingItem = existingCart.find(item => item.productId === productId);
-      
+      const existingCart = JSON.parse(
+        localStorage.getItem('guestCart') || '[]'
+      ) as CartItem[];
+
+      const existingItem = existingCart.find(
+        (item) => item.productId === productId
+      );
+
       if (existingItem) {
         existingItem.quantity += 1;
       } else {
@@ -81,7 +93,7 @@ const AddToCart = ({ productId, productName, productPrice }: AddToCartProps) => 
           productId,
           name: productName,
           price: productPrice,
-          quantity: 1
+          quantity: 1,
         });
       }
 
@@ -89,21 +101,19 @@ const AddToCart = ({ productId, productName, productPrice }: AddToCartProps) => 
       alert('Product added to cart! (Guest mode)');
       triggerCartUpdate();
     }
-    
+
     setIsLoading(false);
   };
 
   return (
-    <button 
+    <button
       onClick={addToCart}
       disabled={isLoading}
-      className={`
-        w-full px-4 py-2 rounded-md text-white font-medium
-        ${isLoading 
-          ? 'bg-gray-400 cursor-not-allowed' 
-          : 'bg-blue-500 hover:bg-blue-600 active:bg-blue-700'}
-        transition-colors duration-200
-      `}
+      className={`w-full rounded-md px-4 py-2 font-medium text-white ${
+        isLoading
+          ? 'cursor-not-allowed bg-gray-400'
+          : 'bg-blue-500 hover:bg-blue-600 active:bg-blue-700'
+      } transition-colors duration-200`}
     >
       {isLoading ? 'Adding...' : 'Add to cart'}
     </button>

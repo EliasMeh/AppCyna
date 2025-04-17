@@ -10,12 +10,12 @@ import { triggerCartUpdate } from '@/lib/events';
 // Update the CartItem interface to properly type the database structure
 interface CartItem {
   id?: number;
-  productId?: number;  // For guest cart
-  produitId?: number;  // For logged-in users
+  productId?: number; // For guest cart
+  produitId?: number; // For logged-in users
   name?: string;
   price?: number;
-  quantite?: number;   // For database items
-  quantity?: number;   // For guest cart
+  quantite?: number; // For database items
+  quantity?: number; // For guest cart
   produit?: {
     id: number;
     nom: string;
@@ -44,13 +44,15 @@ const sortCartItems = (items: CartItem[], isLoggedIn: boolean): CartItem[] => {
 
     // First compare by name
     const nameComparison = nameA.localeCompare(nameB);
-    
+
     // If names are the same, compare by total price
     if (nameComparison === 0) {
-      const totalPriceA = (isLoggedIn ? a.produit?.prix || 0 : a.price || 0) * 
-                         (isLoggedIn ? a.quantite || 0 : a.quantity || 0);
-      const totalPriceB = (isLoggedIn ? b.produit?.prix || 0 : b.price || 0) * 
-                         (isLoggedIn ? b.quantite || 0 : b.quantity || 0);
+      const totalPriceA =
+        (isLoggedIn ? a.produit?.prix || 0 : a.price || 0) *
+        (isLoggedIn ? a.quantite || 0 : a.quantity || 0);
+      const totalPriceB =
+        (isLoggedIn ? b.produit?.prix || 0 : b.price || 0) *
+        (isLoggedIn ? b.quantite || 0 : b.quantity || 0);
       return totalPriceB - totalPriceA; // Sort by price in descending order
     }
 
@@ -88,9 +90,14 @@ export default function CartPage() {
 
         const initialTotals: ProductTotals = {};
         const total = data.reduce((sum: number, item: CartItem) => {
-          const itemTotal = (user ? item.produit?.prix ?? 0 : item.price ?? 0) * 
-                           (user ? item.quantite ?? 0 : item.quantity ?? 0);
-          initialTotals[user ? item.id?.toString() ?? '' : item.productId?.toString() ?? ''] = itemTotal;
+          const itemTotal =
+            (user ? (item.produit?.prix ?? 0) : (item.price ?? 0)) *
+            (user ? (item.quantite ?? 0) : (item.quantity ?? 0));
+          initialTotals[
+            user
+              ? (item.id?.toString() ?? '')
+              : (item.productId?.toString() ?? '')
+          ] = itemTotal;
           return sum + itemTotal;
         }, 0);
 
@@ -123,37 +130,43 @@ export default function CartPage() {
 
     if (user) {
       try {
-        const response = await fetch(`/api/cart?cartItemId=${item.id}&quantite=${newQuantity}`, {
-          method: 'PUT'
-        });
+        const response = await fetch(
+          `/api/cart?cartItemId=${item.id}&quantite=${newQuantity}`,
+          {
+            method: 'PUT',
+          }
+        );
         const data = await response.json();
-        
+
         if (!response.ok) {
           alert(data.error || 'Failed to update quantity');
           return;
         }
 
         // Update cart items with new quantity
-        const updatedCartItems = cartItems.map(cartItem =>
-          cartItem.id === item.id ? { ...cartItem, quantite: newQuantity } : cartItem
+        const updatedCartItems = cartItems.map((cartItem) =>
+          cartItem.id === item.id
+            ? { ...cartItem, quantite: newQuantity }
+            : cartItem
         );
         setCartItems(updatedCartItems);
 
         // Update product total
         const itemPrice = item.produit?.prix ?? 0;
         const itemId = item.id?.toString() ?? '';
-        setProductTotals(prev => ({
+        setProductTotals((prev) => ({
           ...prev,
-          [itemId]: itemPrice * newQuantity
+          [itemId]: itemPrice * newQuantity,
         }));
 
         // Update cart total
-        const newTotal = updatedCartItems.reduce((total, item) => 
-          total + ((item.produit?.prix ?? 0) * (item.quantite ?? 0)), 0
+        const newTotal = updatedCartItems.reduce(
+          (total, item) =>
+            total + (item.produit?.prix ?? 0) * (item.quantite ?? 0),
+          0
         );
         setCartTotal(newTotal);
         triggerCartUpdate();
-
       } catch (error) {
         console.error('Error updating quantity:', error);
         alert('Failed to update quantity');
@@ -161,29 +174,31 @@ export default function CartPage() {
     } else {
       // Guest user - update localStorage
       const guestCart = JSON.parse(localStorage.getItem('guestCart') || '[]');
-      const updatedCart = guestCart.map((cartItem: CartItem) => 
-        cartItem.productId === item.productId 
+      const updatedCart = guestCart.map((cartItem: CartItem) =>
+        cartItem.productId === item.productId
           ? { ...cartItem, quantity: newQuantity }
           : cartItem
       );
-      
+
       // Update localStorage
       localStorage.setItem('guestCart', JSON.stringify(updatedCart));
-      
+
       // Update cart items state
       setCartItems(updatedCart);
 
       // Update product total
       const itemPrice = item.price ?? 0;
       const itemId = item.productId?.toString() ?? '';
-      setProductTotals(prev => ({
+      setProductTotals((prev) => ({
         ...prev,
-        [itemId]: itemPrice * newQuantity
+        [itemId]: itemPrice * newQuantity,
       }));
 
       // Update cart total
-      const newTotal: number = updatedCart.reduce((total: number, item: CartItem) => 
-        total + ((item.price ?? 0) * (item.quantity ?? 0)), 0
+      const newTotal: number = updatedCart.reduce(
+        (total: number, item: CartItem) =>
+          total + (item.price ?? 0) * (item.quantity ?? 0),
+        0
       );
       setCartTotal(newTotal);
       triggerCartUpdate();
@@ -195,7 +210,7 @@ export default function CartPage() {
       // Logged in user - update via API
       try {
         const response = await fetch(`/api/cart?cartItemId=${item.id}`, {
-          method: 'DELETE'
+          method: 'DELETE',
         });
         if (!response.ok) throw new Error('Failed to remove item');
         loadCartItems();
@@ -206,8 +221,8 @@ export default function CartPage() {
     } else {
       // Guest user - update localStorage
       const guestCart = JSON.parse(localStorage.getItem('guestCart') || '[]');
-      const updatedCart = guestCart.filter((cartItem: CartItem) => 
-        cartItem.productId !== item.productId
+      const updatedCart = guestCart.filter(
+        (cartItem: CartItem) => cartItem.productId !== item.productId
       );
       localStorage.setItem('guestCart', JSON.stringify(updatedCart));
       setCartItems(updatedCart);
@@ -228,79 +243,104 @@ export default function CartPage() {
 
   return (
     <main>
-    <Header />
-    <div className="container mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-6">Shopping Cart</h1>
-      
-      {cartItems.length === 0 ? (
-        <div className="text-center py-8">
-          <p className="text-gray-600 mb-4">Your cart is empty</p>
-          <Link href="/" className="text-blue-500 hover:text-blue-600">
-            Continue Shopping
-          </Link>
-        </div>
-      ) : (
-        <div className="space-y-4">
-          {sortCartItems(cartItems, !!user).map((item) => (
-            <div key={user ? item.id : item.productId} className="flex items-center border p-4 rounded-lg">
-              <div className="w-24">
-                <ImagePre 
-                  id={(user ? item.produit?.id : item.productId)?.toString() || ''} 
-                  alt={user ? item.produit?.nom || '' : item.name || ''}
-                />
-              </div>
-              <div className="flex-1 ml-4">
-                <h3 className="font-semibold">
-                  {user ? item.produit?.nom : item.name}
-                </h3>
-                <p className="text-gray-600">
-                  Price: €{user ? item.produit?.prix : item.price}
-                </p>
-                <div className="flex items-center mt-2">
-                  <button
-                    onClick={() => updateQuantity(item, (user ? item.quantite ?? 0 : item.quantity ?? 0) - 1)}
-                    className="px-2 py-1 bg-gray-200 rounded"
-                  >
-                    -
-                  </button>
-                  <span className="mx-4">{user ? item.quantite : item.quantity}</span>
-                  <button
-                    onClick={() => updateQuantity(item, (user ? item.quantite ?? 0 : item.quantity ?? 0) + 1)}
-                    className="px-2 py-1 bg-gray-200 rounded"
-                  >
-                    +
-                  </button>
-                  <button
-                    onClick={() => removeItem(item)}
-                    className="ml-4 text-red-500 hover:text-red-600"
-                  >
-                    Remove
-                  </button>
+      <Header />
+      <div className="container mx-auto p-4">
+        <h1 className="mb-6 text-2xl font-bold">Shopping Cart</h1>
+
+        {cartItems.length === 0 ? (
+          <div className="py-8 text-center">
+            <p className="mb-4 text-gray-600">Your cart is empty</p>
+            <Link href="/" className="text-blue-500 hover:text-blue-600">
+              Continue Shopping
+            </Link>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {sortCartItems(cartItems, !!user).map((item) => (
+              <div
+                key={user ? item.id : item.productId}
+                className="flex items-center rounded-lg border p-4"
+              >
+                <div className="w-24">
+                  <ImagePre
+                    id={
+                      (user ? item.produit?.id : item.productId)?.toString() ||
+                      ''
+                    }
+                    alt={user ? item.produit?.nom || '' : item.name || ''}
+                  />
+                </div>
+                <div className="ml-4 flex-1">
+                  <h3 className="font-semibold">
+                    {user ? item.produit?.nom : item.name}
+                  </h3>
+                  <p className="text-gray-600">
+                    Price: €{user ? item.produit?.prix : item.price}
+                  </p>
+                  <div className="mt-2 flex items-center">
+                    <button
+                      onClick={() =>
+                        updateQuantity(
+                          item,
+                          (user ? (item.quantite ?? 0) : (item.quantity ?? 0)) -
+                            1
+                        )
+                      }
+                      className="rounded bg-gray-200 px-2 py-1"
+                    >
+                      -
+                    </button>
+                    <span className="mx-4">
+                      {user ? item.quantite : item.quantity}
+                    </span>
+                    <button
+                      onClick={() =>
+                        updateQuantity(
+                          item,
+                          (user ? (item.quantite ?? 0) : (item.quantity ?? 0)) +
+                            1
+                        )
+                      }
+                      className="rounded bg-gray-200 px-2 py-1"
+                    >
+                      +
+                    </button>
+                    <button
+                      onClick={() => removeItem(item)}
+                      className="ml-4 text-red-500 hover:text-red-600"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                </div>
+                <div className="font-bold">
+                  €
+                  {productTotals[
+                    user
+                      ? (item.id?.toString() ?? '')
+                      : (item.productId?.toString() ?? '')
+                  ] ??
+                    (user ? (item.produit?.prix ?? 0) : (item.price ?? 0)) *
+                      (user ? (item.quantite ?? 0) : (item.quantity ?? 0))}
                 </div>
               </div>
-              <div className="font-bold">
-                €{productTotals[user ? item.id?.toString() ?? '' : item.productId?.toString() ?? ''] ?? 
-                  ((user ? item.produit?.prix ?? 0 : item.price ?? 0) * 
-                  (user ? item.quantite ?? 0 : item.quantity ?? 0))}
+            ))}
+
+            <div className="mt-6 text-right">
+              <div className="text-xl font-bold">
+                Total: €{cartTotal.toFixed(2)}
               </div>
+              <button
+                onClick={() => router.push('/checkout')}
+                className="mt-4 rounded bg-blue-500 px-6 py-2 text-white hover:bg-blue-600"
+              >
+                Proceed to Checkout
+              </button>
             </div>
-          ))}
-          
-          <div className="mt-6 text-right">
-            <div className="text-xl font-bold">
-              Total: €{cartTotal.toFixed(2)}
-            </div>
-            <button
-              onClick={() => router.push('/checkout')}
-              className="mt-4 px-6 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-            >
-              Proceed to Checkout
-            </button>
           </div>
-        </div>
-      )}
-    </div>
-    <Footer />
+        )}
+      </div>
+      <Footer />
     </main>
   );
 }

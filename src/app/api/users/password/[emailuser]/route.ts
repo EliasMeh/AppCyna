@@ -1,13 +1,13 @@
-import { NextRequest, NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
-import bcrypt from "bcrypt";
+import { NextRequest, NextResponse } from 'next/server';
+import { PrismaClient } from '@prisma/client';
+import bcrypt from 'bcrypt';
 
 const prisma = new PrismaClient();
 
 export async function PUT(request: NextRequest) {
   try {
     // Extraction du paramètre dynamique "emailuser" depuis l'URL
-    const emailuser = request.nextUrl.pathname.split("/").pop() ?? "";
+    const emailuser = request.nextUrl.pathname.split('/').pop() ?? '';
 
     const userEmail = decodeURIComponent(emailuser);
 
@@ -24,9 +24,9 @@ export async function PUT(request: NextRequest) {
     const body = await request.json();
     const { newPassword } = body;
 
-    if (!newPassword || typeof newPassword !== "string") {
+    if (!newPassword || typeof newPassword !== 'string') {
       return NextResponse.json(
-        { error: "Nouveau mot de passe requis" },
+        { error: 'Nouveau mot de passe requis' },
         { status: 400 }
       );
     }
@@ -38,7 +38,7 @@ export async function PUT(request: NextRequest) {
 
     if (!existingUser) {
       return NextResponse.json(
-        { error: "Utilisateur non trouvé" },
+        { error: 'Utilisateur non trouvé' },
         { status: 404 }
       );
     }
@@ -67,16 +67,15 @@ export async function PUT(request: NextRequest) {
     // Réponse en cas de succès
     return NextResponse.json(
       {
-        message: "Mot de passe mis à jour avec succès",
+        message: 'Mot de passe mis à jour avec succès',
         user: updatedUser,
       },
       { status: 200 }
     );
-
   } catch (error) {
-    console.error("Error updating password:", error);
+    console.error('Error updating password:', error);
     return NextResponse.json(
-      { error: "Erreur lors de la mise à jour du mot de passe" },
+      { error: 'Erreur lors de la mise à jour du mot de passe' },
       { status: 500 }
     );
   } finally {

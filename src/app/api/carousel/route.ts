@@ -1,5 +1,5 @@
 import { PrismaClient, ImageType } from '@prisma/client';
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse } from 'next/server';
 
 const prisma = new PrismaClient();
 
@@ -30,15 +30,21 @@ export async function POST(request: NextRequest) {
     const order = parseInt(orderValue);
 
     if (!file || !(file instanceof Blob)) {
-      return NextResponse.json({
-        error: 'No image file provided'
-      }, { status: 400 });
+      return NextResponse.json(
+        {
+          error: 'No image file provided',
+        },
+        { status: 400 }
+      );
     }
 
     if (isNaN(order) || order < 0 || order > 2) {
-      return NextResponse.json({
-        error: 'Invalid order value. Must be between 0 and 2'
-      }, { status: 400 });
+      return NextResponse.json(
+        {
+          error: 'Invalid order value. Must be between 0 and 2',
+        },
+        { status: 400 }
+      );
     }
 
     const bytes = await file.arrayBuffer();
@@ -46,7 +52,7 @@ export async function POST(request: NextRequest) {
     const imageType = getMimeType(file.type);
 
     const existingImage = await prisma.carouselImage.findFirst({
-      where: { order }
+      where: { order },
     });
 
     let carouselImage;
@@ -58,8 +64,8 @@ export async function POST(request: NextRequest) {
           data: buffer,
           title,
           active: true,
-          contentType: imageType
-        }
+          contentType: imageType,
+        },
       });
     } else {
       carouselImage = await prisma.carouselImage.create({
@@ -68,8 +74,8 @@ export async function POST(request: NextRequest) {
           title,
           order,
           active: true,
-          contentType: imageType
-        }
+          contentType: imageType,
+        },
       });
     }
 
@@ -79,38 +85,45 @@ export async function POST(request: NextRequest) {
         id: carouselImage.id,
         title: carouselImage.title,
         order: carouselImage.order,
-        contentType: imageType
-      }
+        contentType: imageType,
+      },
     });
-
   } catch (error) {
     console.error('Error uploading image:', error);
-    return NextResponse.json({
-      success: false,
-      error: 'Failed to upload image',
-      details: error instanceof Error ? error.message : 'Unknown error'
-    }, { status: 500 });
+    return NextResponse.json(
+      {
+        success: false,
+        error: 'Failed to upload image',
+        details: error instanceof Error ? error.message : 'Unknown error',
+      },
+      { status: 500 }
+    );
   }
 }
 
 export async function GET() {
-    try {
-      const images = await prisma.carouselImage.findMany({
-        where: { active: true },
-        orderBy: { order: 'asc' }
-      });
+  try {
+    const images = await prisma.carouselImage.findMany({
+      where: { active: true },
+      orderBy: { order: 'asc' },
+    });
 
-      return NextResponse.json(images.map(img => ({
+    return NextResponse.json(
+      images.map((img) => ({
         ...img,
         data: {
           type: 'Buffer',
-          data: Array.from(img.data) // Convert Buffer to array explicitly
-        }
-      })));
-    } catch (error) {
-      console.error('Error fetching images:', error);
-      return NextResponse.json({
-        error: 'Failed to fetch carousel images'
-      }, { status: 500 });
-    }
+          data: Array.from(img.data), // Convert Buffer to array explicitly
+        },
+      }))
+    );
+  } catch (error) {
+    console.error('Error fetching images:', error);
+    return NextResponse.json(
+      {
+        error: 'Failed to fetch carousel images',
+      },
+      { status: 500 }
+    );
+  }
 }

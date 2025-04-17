@@ -11,6 +11,7 @@ datasource db {
 
 generator client {
   provider = "prisma-client-js"
+  output   = "../node_modules/.prisma/client"
 }
 
 enum Role {
@@ -90,10 +91,26 @@ model Image {
   produit   Produit? @relation(fields: [produitId], references: [id])
 }
 
+model GrilleCategorie {
+  id           Int       @id @default(autoincrement())
+  categorie1Id Int?
+  categorie2Id Int?
+  categorie3Id Int?
+  categorie1   Categorie? @relation("GrilleCategorie1", fields: [categorie1Id], references: [id])
+  categorie2   Categorie? @relation("GrilleCategorie2", fields: [categorie2Id], references: [id])
+  categorie3   Categorie? @relation("GrilleCategorie3", fields: [categorie3Id], references: [id])
+  active       Boolean   @default(true)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+}
+
 model Categorie {
-  id       Int       @id @default(autoincrement())
-  nom      String
-  produits Produit[] 
+  id              Int              @id @default(autoincrement())
+  nom             String
+  produits        Produit[]
+  grilleCategorie1 GrilleCategorie[] @relation("GrilleCategorie1")
+  grilleCategorie2 GrilleCategorie[] @relation("GrilleCategorie2")
+  grilleCategorie3 GrilleCategorie[] @relation("GrilleCategorie3")
 }
 
 enum ImageType {

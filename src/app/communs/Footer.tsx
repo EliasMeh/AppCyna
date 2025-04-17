@@ -6,17 +6,21 @@ import ButtonBot from './ButtonBot';
 
 export default function Footer() {
   return (
-    <footer className="p-4 bg-customViolet text-white rounded-xl flex justify-center">
-      <div className="flex space-x-1 mt-4 items-center">
+    <footer className="flex justify-center rounded-xl bg-customViolet p-4 text-white">
+      <div className="mt-4 flex items-center space-x-1">
         <Link href="/pages/cgu" passHref>
           <Button>CGU</Button>
         </Link>
-        
+
         <Link href="/pages/contact" passHref>
           <Button>Contact</Button>
         </Link>
-        
-        <Link href="https://fr.linkedin.com/company/cyna-it" target="_blank" rel="noopener noreferrer">
+
+        <Link
+          href="https://fr.linkedin.com/company/cyna-it"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
           <Image
             src="/assets/Linkedin.png"
             alt="LinkedIn"

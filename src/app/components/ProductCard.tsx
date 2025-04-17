@@ -11,37 +11,38 @@ interface ProductCardProps {
   stock: number; // Remove optional flag since it's required
 }
 
-const ProductCard = ({ 
-  productName, 
-  productPrice, 
+const ProductCard = ({
+  productName,
+  productPrice,
   productId,
   description,
-  stock
+  stock,
 }: ProductCardProps) => {
   return (
-    <div className='p-4 border border-gray-300 rounded-md m-4 hover:shadow-lg transition-shadow inline-block'>
+    <div className="m-4 inline-block rounded-md border border-gray-300 p-4 transition-shadow hover:shadow-lg">
       <Link href={`/pages/produit/${productId}`}>
-        <div className='cursor-pointer'>
-          <ImagePre 
-            id={productId.toString()} 
-            alt={`Image of ${productName}`} 
-          />
-          <div className='mt-2 space-y-1'>
-            <h3 className='font-semibold text-lg'>{productName}</h3>
-            <p className='font-bold text-xl'>{productPrice}€</p>
+        <div className="cursor-pointer">
+          <ImagePre id={productId.toString()} alt={`Image of ${productName}`} />
+          <div className="mt-2 space-y-1">
+            <h3 className="text-lg font-semibold">{productName}</h3>
+            <p className="text-xl font-bold">{productPrice}€</p>
             {description && (
-              <p className='text-sm text-gray-600 line-clamp-2'>{description}</p>
+              <p className="line-clamp-2 text-sm text-gray-600">
+                {description}
+              </p>
             )}
-            <p className={`text-sm ${stock > 0 ? 'text-green-600' : 'text-red-600'} font-medium`}>
+            <p
+              className={`text-sm ${stock > 0 ? 'text-green-600' : 'text-red-600'} font-medium`}
+            >
               {stock > 0 ? `${stock} in stock` : 'Out of stock'}
             </p>
           </div>
         </div>
       </Link>
-      <div className='mt-4'>
-        <AddToCart 
-          productId={productId} 
-          productName={productName} 
+      <div className="mt-4">
+        <AddToCart
+          productId={productId}
+          productName={productName}
           productPrice={productPrice}
         />
       </div>

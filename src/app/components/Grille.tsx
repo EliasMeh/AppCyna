@@ -48,13 +48,13 @@ const Grille = () => {
   return (
     <div>
       {products.map((product) => (
-        <ProductCard 
-        key={product.id} 
-        productId={product.id} 
-        productName={product.nom} 
-        productPrice={product.prix}
-        stock={product.quantite}
-      />
+        <ProductCard
+          key={product.id}
+          productId={product.id}
+          productName={product.nom}
+          productPrice={product.prix}
+          stock={product.quantite}
+        />
       ))}
     </div>
   );
