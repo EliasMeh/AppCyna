@@ -32,6 +32,8 @@ model User {
   panier   Panier[]
   orders   PreviousOrder[]
   subscriptions Subscription[]
+  stripeCustomerId String? @unique
+  payments         Payment[]
 }
 
 model Produit {
@@ -50,13 +52,20 @@ model Produit {
 }
 
 model Subscription {
-  id         Int      @id @default(autoincrement())
-  produitId  Int
-  userId     Int
-  startDate  DateTime @default(now())
-  endDate    DateTime?
-  produit    Produit  @relation(fields: [produitId], references: [id])
-  user       User     @relation(fields: [userId], references: [id])
+  id            Int       @id @default(autoincrement())
+  produitId     Int
+  userId        Int
+  startDate     DateTime  @default(now())
+  endDate       DateTime?
+  status        String    @default("active") // To track subscription status
+  stripeSubId   String?   @unique // Store Stripe subscription ID
+  currentPeriodStart DateTime @default(now())
+  currentPeriodEnd   DateTime
+  cancelAtPeriodEnd  Boolean  @default(false)
+  produit       Produit   @relation(fields: [produitId], references: [id])
+  user          User      @relation(fields: [userId], references: [id])
+  payments      Payment[] // Opposite relation field for Payment model
+  @@index([stripeSubId])
 }
 
 model Panier {
@@ -130,4 +139,20 @@ model CarouselImage {
   active      Boolean   @default(true)
   contentType ImageType @default(JPEG)
   createdAt   DateTime  @default(now())
+}
+
+model Payment {
+  id              Int           @id @default(autoincrement())
+  subscriptionId  Int
+  userId          Int
+  amount          Float
+  currency        String       @default("EUR")
+  stripePaymentId String       @unique
+  status          String
+  createdAt       DateTime     @default(now())
+  subscription    Subscription @relation(fields: [subscriptionId], references: [id])
+  user            User         @relation(fields: [userId], references: [id])
+  
+  @@index([stripePaymentId])
+  @@index([userId])
 }

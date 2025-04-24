@@ -331,7 +331,7 @@ export default function CartPage() {
                 Total: €{cartTotal.toFixed(2)}
               </div>
               <button
-                onClick={() => router.push('/checkout')}
+                onClick={() => router.push('/pages/checkout')}
                 className="mt-4 rounded bg-blue-500 px-6 py-2 text-white hover:bg-blue-600"
               >
                 Proceed to Checkout

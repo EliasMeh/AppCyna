@@ -10,6 +10,7 @@ async function main() {
     // Clean up existing data
     console.log('Cleaning existing data...')
     await prisma.$transaction([
+      prisma.payment.deleteMany(),
       prisma.carouselImage.deleteMany(),
       prisma.image.deleteMany(),
       prisma.text.deleteMany(),
@@ -32,6 +33,7 @@ async function main() {
         prenom: 'Super',
         role: Role.ADMIN,
         verified: true,
+        // Remove stripeCustomerId - let Stripe create it during checkout
       },
     })
 
@@ -42,7 +44,7 @@ async function main() {
       prisma.categorie.create({ data: { nom: 'Livres' } }),
     ])
 
-    // Create grille categorie
+    console.log('Creating grille categorie...')
     const grilleCategorie = await prisma.grilleCategorie.create({
       data: {
         categorie1Id: categories[0].id,
@@ -52,41 +54,41 @@ async function main() {
       },
     })
 
-    // Create products
+    console.log('Creating products...')
     const products = await Promise.all([
       prisma.produit.create({
         data: {
-          nom: 'Smartphone XYZ',
-          prix: 599.99,
-          description: 'Un smartphone dernière génération',
-          quantite: 50,
-          placement: 1,
-          categorieId: categories[0].id,
+        nom: 'Smartphone XYZ',
+        prix: 599.99,
+        description: 'Un smartphone dernière génération',
+        quantite: 50,
+        placement: 1,
+        categorieId: categories[0].id,
         },
       }),
       prisma.produit.create({
         data: {
-          nom: 'T-shirt Premium',
-          prix: 29.99,
-          description: 'T-shirt 100% coton bio',
-          quantite: 100,
-          placement: 2,
-          categorieId: categories[1].id,
+        nom: 'T-shirt Premium',
+        prix: 29.99,
+        description: 'T-shirt 100% coton bio',
+        quantite: 100,
+        placement: 2,
+        categorieId: categories[1].id,
         },
       }),
       prisma.produit.create({
         data: {
-          nom: 'Guide du développeur',
-          prix: 39.99,
-          description: 'Le guide complet du développement moderne',
-          quantite: 75,
-          placement: 3,
-          categorieId: categories[2].id,
+        nom: 'Guide du développeur',
+        prix: 39.99,
+        description: 'Le guide complet du développement moderne',
+        quantite: 75,
+        placement: 3,
+        categorieId: categories[2].id,
         },
       }),
     ])
 
-    // Create sample user with cart and orders
+    console.log('Creating sample user...')
     const userPassword = await bcrypt.hash('user123', 10)
     const user = await prisma.user.create({
       data: {
@@ -97,10 +99,11 @@ async function main() {
         adresse: '123 Main St',
         role: Role.USER,
         verified: true,
+        // Remove stripeCustomerId - let Stripe create it during checkout
       },
     })
 
-    // Add items to user's cart
+    console.log('Creating cart items...')
     await prisma.panier.create({
       data: {
         userId: user.id,
@@ -109,35 +112,52 @@ async function main() {
       },
     })
 
-    // Create a previous order
+    console.log('Creating previous order...')
     await prisma.previousOrder.create({
       data: {
         userId: user.id,
         produitId: products[1].id,
         quantite: 2,
         prixUnitaire: 29.99,
-        prixTotalPasse: 59.98,
+        prixTotalPasse: 5998, // Stored as cents
       },
     })
 
-    // Create a subscription
-    await prisma.subscription.create({
+    console.log('Creating subscription...')
+    const subscription = await prisma.subscription.create({
       data: {
         userId: user.id,
         produitId: products[2].id,
         startDate: new Date(),
-        endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
+        endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+        status: 'active',
+        stripeSubId: 'sub_test',
+        currentPeriodStart: new Date(),
+        currentPeriodEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+        cancelAtPeriodEnd: false,
       },
     })
 
-    // Create sample text content
+    console.log('Creating payment record...')
+    await prisma.payment.create({
+      data: {
+        subscriptionId: subscription.id,
+        userId: user.id,
+        amount: 39.99,
+        currency: 'EUR',
+        stripePaymentId: 'pi_test',
+        status: 'succeeded',
+      },
+    })
+
+    console.log('Creating sample text content...')
     await prisma.text.create({
       data: {
         content: 'Bienvenue sur notre boutique en ligne!',
       },
     })
 
-    // Create sample carousel images
+    console.log('Creating sample carousel image...')
     const sampleImagePath = path.join(__dirname, 'sample-image.jpg')
     if (fs.existsSync(sampleImagePath)) {
       const imageBuffer = fs.readFileSync(sampleImagePath)
