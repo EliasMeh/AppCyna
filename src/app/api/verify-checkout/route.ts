@@ -11,15 +11,17 @@ export async function POST(request: NextRequest) {
   try {
     const { sessionId } = await request.json();
 
-    // Validate session ID format
+    // Validate session ID
     if (!sessionId || typeof sessionId !== 'string' || !sessionId.startsWith('cs_')) {
       return NextResponse.json({ 
         error: 'Invalid session ID format' 
       }, { status: 400 });
     }
 
-    // Retrieve the checkout session
-    const session = await stripe.checkout.sessions.retrieve(sessionId);
+    // Retrieve the checkout session with line items
+    const session = await stripe.checkout.sessions.retrieve(sessionId, {
+      expand: ['line_items', 'subscription']
+    });
 
     if (!session) {
       return NextResponse.json({ 
@@ -27,14 +29,7 @@ export async function POST(request: NextRequest) {
       }, { status: 404 });
     }
 
-    // Verify payment status
-    if (session.payment_status !== 'paid') {
-      return NextResponse.json({ 
-        error: 'Payment not completed' 
-      }, { status: 400 });
-    }
-
-    const userId = session.metadata?.userId;
+    const userId = parseInt(session.metadata?.userId || '0');
     if (!userId) {
       return NextResponse.json({ 
         error: 'User information not found' 
@@ -42,24 +37,64 @@ export async function POST(request: NextRequest) {
     }
 
     try {
-      // Clear the user's cart
+      // Get cart items for the user
+      const cartItems = await prisma.panier.findMany({
+        where: { userId },
+        include: { produit: true }
+      });
+
+      // Create subscriptions for each item
+      const subscriptionPromises = cartItems.map(async (item) => {
+        const subscription = await prisma.subscription.create({
+          data: {
+            userId: userId,
+            produitId: item.produitId,
+            startDate: new Date(),
+            currentPeriodStart: new Date(),
+            currentPeriodEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
+            status: 'active',
+            stripeSubId: session.subscription?.toString() || null,
+            cancelAtPeriodEnd: false
+          }
+        });
+
+        // Create payment record
+        await prisma.payment.create({
+          data: {
+            subscriptionId: subscription.id,
+            userId: userId,
+            amount: item.produit.prix,
+            currency: 'EUR',
+            stripePaymentId: session.payment_intent?.toString() || 'unknown',
+            status: 'succeeded'
+          }
+        });
+
+        return subscription;
+      });
+
+      // Wait for all subscriptions to be created
+      await Promise.all(subscriptionPromises);
+
+      // Clear the cart
       await prisma.panier.deleteMany({
-        where: { userId: parseInt(userId) },
+        where: { userId }
       });
 
       return NextResponse.json({
         success: true,
-        message: 'Payment verified successfully'
+        message: 'Payment verified and subscriptions created successfully'
       });
+
     } catch (dbError) {
       console.error('Database error:', dbError);
       return NextResponse.json({ 
-        error: 'Failed to update user data' 
+        error: 'Failed to create subscriptions' 
       }, { status: 500 });
     }
 
   } catch (error) {
-    console.error('Stripe verification error:', error);
+    console.error('Verification error:', error);
     return NextResponse.json({
       error: error instanceof Error ? error.message : 'Failed to verify payment'
     }, { status: 500 });

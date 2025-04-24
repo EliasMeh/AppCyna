@@ -5,7 +5,7 @@ import Image from 'next/image';
 import { redirect, useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Navbar, NavbarItem } from '@nextui-org/react';
-import { Search, ShoppingBasket } from 'lucide-react';
+import { Search, ShoppingBasket, UserCircle } from 'lucide-react';
 import { CART_UPDATED_EVENT } from '@/lib/events';
 
 interface User {
@@ -185,6 +185,14 @@ export default function Header() {
             </div>
 
             <div className="flex items-center">
+              {user && (
+                <Button
+                  onClick={() => router.push('/pages/profile')}
+                  className="mr-2 rounded-full bg-white text-gray-800"
+                >
+                  <UserCircle size={24} />
+                </Button>
+              )}
               <Link href="/pages/recherche">
                 <Button className="mr-1 rounded-full bg-white text-gray-800">
                   <Search size={24} />
