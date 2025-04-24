@@ -10,6 +10,7 @@ const GrilleModifiable = () => {
     description: string;
     quantite: number;
     categorieId: number;
+    placement: number;
   }
 
   const [products, setProducts] = useState<Produit[]>([]);

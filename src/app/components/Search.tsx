@@ -36,7 +36,6 @@ export default function Search() {
   useEffect(() => {
     fetchCategories();
 
-    // Check for pre-selected category in URL
     const params = new URLSearchParams(window.location.search);
     const preSelectedCategory = params.get('selectedCategory');
 
@@ -46,7 +45,7 @@ export default function Search() {
     }
   }, []);
 
-  async function fetchCategories() {
+  async function fetchCategories() {  
     setLoading(true);
     setError(null);
     try {
