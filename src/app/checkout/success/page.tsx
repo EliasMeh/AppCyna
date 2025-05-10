@@ -83,27 +83,27 @@ export default function SuccessPage() {
   return (
     <main>
       <Header />
-      <div className="container mx-auto px-4 py-8">
-        <div className="max-w-2xl mx-auto text-center">
+      <div className="container mx-auto py-8 px-4">
+        <div className="mx-auto max-w-2xl text-center">
           {status.status === 'loading' && (
             <div className="animate-pulse">
-              <h1 className="text-2xl font-bold mb-4">Processing your order...</h1>
+              <h1 className="mb-4 text-2xl font-bold">Processing your order...</h1>
               <p className="text-gray-600">Please wait while we confirm your payment.</p>
             </div>
           )}
 
           {status.status === 'success' && (
-            <div className="bg-green-50 p-6 rounded-lg">
-              <h1 className="text-3xl font-bold text-green-600 mb-4">
+            <div className="rounded-lg bg-green-50 p-6">
+              <h1 className="mb-4 text-3xl font-bold text-green-600">
                 Thank you for your purchase!
               </h1>
-              <p className="text-gray-600 mb-6">{status.message}</p>
+              <p className="mb-6 text-gray-600">{status.message}</p>
               <p className="text-sm text-gray-500">
                 You will be redirected to the homepage in a few seconds...
               </p>
               <button
                 onClick={() => router.push('/')}
-                className="mt-4 bg-green-600 text-white px-6 py-2 rounded-md hover:bg-green-700 transition-colors"
+                className="mt-4 rounded-md bg-green-600 px-6 py-2 text-white transition-colors hover:bg-green-700"
               >
                 Return to Home
               </button>
@@ -111,14 +111,14 @@ export default function SuccessPage() {
           )}
 
           {status.status === 'error' && (
-            <div className="bg-red-50 p-6 rounded-lg">
-              <h1 className="text-3xl font-bold text-red-600 mb-4">
+            <div className="rounded-lg bg-red-50 p-6">
+              <h1 className="mb-4 text-3xl font-bold text-red-600">
                 Oops! Something went wrong
               </h1>
-              <p className="text-gray-600 mb-6">{status.message}</p>
+              <p className="mb-6 text-gray-600">{status.message}</p>
               <button
                 onClick={handleCartReturn}
-                className="mt-4 bg-red-600 text-white px-6 py-2 rounded-md hover:bg-red-700 transition-colors"
+                className="mt-4 rounded-md bg-red-600 px-6 py-2 text-white transition-colors hover:bg-red-700"
               >
                 Return to Cart
               </button>

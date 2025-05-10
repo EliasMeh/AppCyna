@@ -5,7 +5,7 @@ import Image from 'next/image';
 import { redirect, useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Navbar, NavbarItem } from '@nextui-org/react';
-import { Search, ShoppingBasket, UserCircle } from 'lucide-react';
+import { Search, ShoppingBasket, UserCircle, LogOut, Settings } from 'lucide-react';
 import { CART_UPDATED_EVENT } from '@/lib/events';
 
 interface User {
@@ -116,9 +116,9 @@ export default function Header() {
   };
 
   return (
-    <header className="sticky top-0 z-50 rounded bg-red-700 text-white">
+    <header className="sticky top-0 z-50 rounded text-white">
       <div className="rounded-lg bg-customViolet p-2">
-        <Navbar isBordered className="rounded-lg">
+        <Navbar className="rounded-lg">
           <div className="flex w-full items-center justify-between">
             <div className="flex items-center">
               <Link href="/" passHref>
@@ -137,33 +137,52 @@ export default function Header() {
 
             <div className="flex flex-1 justify-center gap-4">
               {user && user.role === 'ADMIN' ? (
-                <>
-                  <NavbarItem className="list-none">
-                    <p className="font-semibold">Welcome, {user.nom}!</p>
-                  </NavbarItem>
-                  <NavbarItem className="list-none">
-                    <Button onClick={handleLogout} className="bg-gray-700">
-                      Logout
-                    </Button>
+                <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-2">
+                    <div className="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center">
+                      <UserCircle className="h-6 w-6 text-gray-700" />
+                    </div>
+                    <div className="flex flex-col">
+                      <p className="text-sm font-medium">Welcome back,</p>
+                      <p className="font-semibold text-white">{user.nom}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
                     <Button
                       onClick={() => router.push('/pages/backoffice')}
-                      className="ml-2 bg-gray-700"
+                      className="flex items-center gap-2 bg-white/10 hover:bg-white/20"
                     >
-                      Back Office
+                      <Settings size={18} />
+                      <span>Back Office</span>
                     </Button>
-                  </NavbarItem>
-                </>
+                    <Button
+                      onClick={handleLogout}
+                      className="flex items-center gap-2 bg-white/10 hover:bg-white/20"
+                    >
+                      <LogOut size={18} />
+                      <span>Logout</span>
+                    </Button>
+                  </div>
+                </div>
               ) : user ? (
-                <>
-                  <NavbarItem className="list-none">
-                    <p className="font-semibold">Welcome, {user.nom}!</p>
-                  </NavbarItem>
-                  <NavbarItem className="list-none">
-                    <Button onClick={handleLogout} className="bg-gray-700">
-                      Logout
-                    </Button>
-                  </NavbarItem>
-                </>
+                <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-2">
+                    <div className="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center">
+                      <UserCircle className="h-6 w-6 text-gray-700" />
+                    </div>
+                    <div className="flex flex-col">
+                      <p className="text-sm font-medium">Welcome back,</p>
+                      <p className="font-semibold text-white">{user.nom}</p>
+                    </div>
+                  </div>
+                  <Button
+                    onClick={handleLogout}
+                    className="flex items-center gap-2 bg-white/10 hover:bg-white/20"
+                  >
+                    <LogOut size={18} />
+                    <span>Logout</span>
+                  </Button>
+                </div>
               ) : (
                 <>
                   <NavbarItem className="list-none">

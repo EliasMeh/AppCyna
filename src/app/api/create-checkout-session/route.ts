@@ -2,6 +2,17 @@ import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 import Stripe from 'stripe';
 
+interface CartItem {
+  produit?: {
+    nom: string;
+    prix: number;
+  };
+  name?: string;
+  price?: number;
+  quantite?: number;
+  quantity?: number;
+}
+
 const prisma = new PrismaClient();
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
     apiVersion: '2025-03-31.basil',
@@ -63,17 +74,17 @@ export async function POST(request: NextRequest) {
         });
       }
 
-      const lineItems = items.map((item: any) => ({
+      const lineItems = items.map((item: CartItem) => ({
         price_data: {
           currency: 'eur',
           product_data: {
-            name: item.produit?.nom || item.name,
+            name: item.produit?.nom || item.name || 'Product',
             description: 'Monthly subscription',
           },
-          unit_amount: Math.round((item.produit?.prix || item.price) * 100),
+          unit_amount: Math.round((item.produit?.prix || item.price || 0) * 100),
           recurring: { interval: 'month' },
         },
-        quantity: item.quantite || item.quantity,
+        quantity: item.quantite || item.quantity || 1,
       }));
 
       const session = await stripe.checkout.sessions.create({
