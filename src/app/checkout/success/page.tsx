@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useRouter } from 'next/navigation';
 import Header from '@/app/communs/Header';
@@ -11,7 +11,7 @@ interface CheckoutStatus {
   message: string;
 }
 
-export default function SuccessPage() {
+function SuccessPageContent() {
   const [status, setStatus] = useState<CheckoutStatus>({ 
     status: 'loading', 
     message: 'Processing your order...' 
@@ -75,57 +75,75 @@ export default function SuccessPage() {
     verifyCheckout();
   }, [sessionId, router]);
 
-  // Fix the cart return path
   const handleCartReturn = () => {
-    router.push('/cart'); // Remove '/pages' prefix
+    router.push('/cart');
   };
 
   return (
+    <div className="container mx-auto px-4 py-8">
+      <div className="mx-auto max-w-2xl text-center">
+        {status.status === 'loading' && (
+          <div className="animate-pulse">
+            <h1 className="mb-4 text-2xl font-bold">Processing your order...</h1>
+            <p className="text-gray-600">Please wait while we confirm your payment.</p>
+          </div>
+        )}
+
+        {status.status === 'success' && (
+          <div className="rounded-lg bg-green-50 p-6">
+            <h1 className="mb-4 text-3xl font-bold text-green-600">
+              Thank you for your purchase!
+            </h1>
+            <p className="mb-6 text-gray-600">{status.message}</p>
+            <p className="text-sm text-gray-500">
+              You will be redirected to the homepage in a few seconds...
+            </p>
+            <button
+              onClick={() => router.push('/')}
+              className="mt-4 rounded-md bg-green-600 px-6 py-2 text-white transition-colors hover:bg-green-700"
+            >
+              Return to Home
+            </button>
+          </div>
+        )}
+
+        {status.status === 'error' && (
+          <div className="rounded-lg bg-red-50 p-6">
+            <h1 className="mb-4 text-3xl font-bold text-red-600">
+              Oops! Something went wrong
+            </h1>
+            <p className="mb-6 text-gray-600">{status.message}</p>
+            <button
+              onClick={handleCartReturn}
+              className="mt-4 rounded-md bg-red-600 px-6 py-2 text-white transition-colors hover:bg-red-700"
+            >
+              Return to Cart
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+export default function SuccessPage() {
+  return (
     <main>
       <Header />
-      <div className="container mx-auto py-8 px-4">
-        <div className="mx-auto max-w-2xl text-center">
-          {status.status === 'loading' && (
-            <div className="animate-pulse">
-              <h1 className="mb-4 text-2xl font-bold">Processing your order...</h1>
-              <p className="text-gray-600">Please wait while we confirm your payment.</p>
+      <Suspense 
+        fallback={
+          <div className="container mx-auto px-4 py-8">
+            <div className="mx-auto max-w-2xl text-center">
+              <div className="animate-pulse">
+                <h1 className="mb-4 text-2xl font-bold">Loading checkout status...</h1>
+                <p className="text-gray-600">Please wait while we load your payment status.</p>
+              </div>
             </div>
-          )}
-
-          {status.status === 'success' && (
-            <div className="rounded-lg bg-green-50 p-6">
-              <h1 className="mb-4 text-3xl font-bold text-green-600">
-                Thank you for your purchase!
-              </h1>
-              <p className="mb-6 text-gray-600">{status.message}</p>
-              <p className="text-sm text-gray-500">
-                You will be redirected to the homepage in a few seconds...
-              </p>
-              <button
-                onClick={() => router.push('/')}
-                className="mt-4 rounded-md bg-green-600 px-6 py-2 text-white transition-colors hover:bg-green-700"
-              >
-                Return to Home
-              </button>
-            </div>
-          )}
-
-          {status.status === 'error' && (
-            <div className="rounded-lg bg-red-50 p-6">
-              <h1 className="mb-4 text-3xl font-bold text-red-600">
-                Oops! Something went wrong
-              </h1>
-              <p className="mb-6 text-gray-600">{status.message}</p>
-              <button
-                onClick={handleCartReturn}
-                className="mt-4 rounded-md bg-red-600 px-6 py-2 text-white transition-colors hover:bg-red-700"
-              >
-                Return to Cart
-              </button>
-            </div>
-          )}
-        </div>
-      </div>
+          </div>
+        }
+      >
+        <SuccessPageContent />
+      </Suspense>
       <Footer />
     </main>
   );

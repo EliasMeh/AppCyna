@@ -236,10 +236,8 @@ export default function CheckoutPage() {
             <button
               onClick={handleCheckout}
               disabled={!user || cartItems.length === 0}
-              className={`mt-6 w-full rounded-lg p-4 text-white ${
-                user && cartItems.length > 0
-                  ? 'bg-blue-600 hover:bg-blue-700'
-                  : 'bg-gray-400 cursor-not-allowed'
+              className={`mt-6 w-full rounded-lg bg-blue-600 p-4 text-white hover:bg-blue-700 ${
+                !user || cartItems.length === 0 ? 'cursor-not-allowed bg-gray-400' : ''
               }`}
             >
               Proceed to Payment

@@ -139,7 +139,7 @@ export default function Header() {
               {user && user.role === 'ADMIN' ? (
                 <div className="flex items-center gap-4">
                   <div className="flex items-center gap-2">
-                    <div className="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-200">
                       <UserCircle className="h-6 w-6 text-gray-700" />
                     </div>
                     <div className="flex flex-col">
@@ -167,7 +167,7 @@ export default function Header() {
               ) : user ? (
                 <div className="flex items-center gap-4">
                   <div className="flex items-center gap-2">
-                    <div className="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-200">
                       <UserCircle className="h-6 w-6 text-gray-700" />
                     </div>
                     <div className="flex flex-col">

@@ -40,6 +40,11 @@ export async function POST(request: NextRequest) {
             produitId: item.produitId,
             startDate: new Date(),
             endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
+            status: 'active',
+            stripeSubId: session.subscription?.toString() || null,
+            currentPeriodStart: new Date(),
+            currentPeriodEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+            cancelAtPeriodEnd: false
           },
         })
       )
