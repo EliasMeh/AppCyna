@@ -20,8 +20,7 @@ const TextDyna = () => {
 
   return (
     <div className="border-spacing-5 rounded-lg border-2 border-gray-300 p-5">
-      <h2>Texte dynamique : </h2>
-      {textaffichable}
+      <h2 className="text-center">{textaffichable}</h2>
     </div>
   );
 };

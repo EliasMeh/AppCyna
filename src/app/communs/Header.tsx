@@ -2,11 +2,11 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { redirect, useRouter } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Navbar, NavbarItem } from '@nextui-org/react';
-import { Search, ShoppingBasket, UserCircle, LogOut, Settings } from 'lucide-react';
+import { Menu, ShoppingBasket, UserCircle, LogOut, Settings } from 'lucide-react';
 import { CART_UPDATED_EVENT } from '@/lib/events';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 
 interface User {
   id: number;
@@ -47,12 +47,10 @@ export default function Header() {
         ) {
           setUser(parsedUser);
         } else {
-          console.warn('Invalid user data structure in localStorage');
           localStorage.removeItem('user');
         }
       }
-    } catch (error) {
-      console.error('Error parsing user data:', error);
+    } catch {
       localStorage.removeItem('user');
     }
     updateCartCount();
@@ -62,51 +60,32 @@ export default function Header() {
     try {
       const storedUser = localStorage.getItem('user');
       if (storedUser) {
-        // Logged in user - get count from API
         const user = JSON.parse(storedUser);
         const response = await fetch(`/api/cart?userId=${user.id}`);
         if (!response.ok) throw new Error('Failed to fetch cart');
         const cartItems = await response.json();
-        // Sum up quantities of all items
         const totalCount = cartItems.reduce(
           (sum: number, item: LoggedInCartItem) => sum + (item.quantite || 0),
           0
         );
         setCartCount(totalCount);
       } else {
-        // Guest user - get count from localStorage
         const guestCart = JSON.parse(localStorage.getItem('guestCart') || '[]');
-        // Sum up quantities of all items
         const totalCount = guestCart.reduce(
           (sum: number, item: GuestCartItem) => sum + (item.quantity || 0),
           0
         );
         setCartCount(totalCount);
       }
-    } catch (error) {
-      console.error('Error updating cart count:', error);
+    } catch {
       setCartCount(0);
     }
   };
 
   useEffect(() => {
-    const handleStorageChange = () => {
-      if (!user) {
-        updateCartCount();
-      }
-    };
-
-    const handleCartUpdate = () => {
-      updateCartCount();
-    };
-
-    window.addEventListener('storage', handleStorageChange);
+    const handleCartUpdate = () => updateCartCount();
     window.addEventListener(CART_UPDATED_EVENT, handleCartUpdate);
-
-    return () => {
-      window.removeEventListener('storage', handleStorageChange);
-      window.removeEventListener(CART_UPDATED_EVENT, handleCartUpdate);
-    };
+    return () => window.removeEventListener(CART_UPDATED_EVENT, handleCartUpdate);
   }, [user]);
 
   const handleLogout = () => {
@@ -116,121 +95,93 @@ export default function Header() {
   };
 
   return (
-    <header className="sticky top-0 z-50 rounded text-white">
-      <div className="rounded-lg bg-customViolet p-2">
-        <Navbar className="rounded-lg">
-          <div className="flex w-full items-center justify-between">
-            <div className="flex items-center">
-              <Link href="/" passHref>
-                <div className="flex cursor-pointer items-center">
-                  <Image
-                    src="/assets/cynalogo.png"
-                    alt="cynaLogo"
-                    width={50}
-                    height={50}
-                    className="mb-6 mt-6 rounded-full"
-                  />
-                  <h1 className="ml-2 text-2xl font-bold text-inherit">Cyna</h1>
-                </div>
-              </Link>
-            </div>
+    <header className="sticky top-0 z-50 w-full bg-customViolet text-white">
+      <nav className="flex items-center justify-between p-4">
+        {/* Logo and name */}
+        <Link href="/" className="flex items-center gap-2">
+          <Image src="/assets/cynalogo.png" alt="cynaLogo" width={40} height={40} className="rounded-full" />
+          <span className="text-xl font-bold">Cyna</span>
+        </Link>
 
-            <div className="flex flex-1 justify-center gap-4">
-              {user && user.role === 'ADMIN' ? (
-                <div className="flex items-center gap-4">
-                  <div className="flex items-center gap-2 rounded-lg border-2 border-black/10 bg-white/5 p-2">
-                    <div className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-black/20 bg-gray-200">
-                      <UserCircle className="h-6 w-6 text-gray-700" />
-                    </div>
-                    <div className="flex flex-col">
-                      <p className="text-sm font-medium">Welcome back,</p>
-                      <p className="font-semibold text-white">{user.nom}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Button
-                      onClick={() => router.push('/pages/backoffice')}
-                      className="flex items-center gap-2 border-2 border-black/10 bg-white/10 hover:bg-white/20"
-                    >
-                      <Settings size={18} />
-                      <span>Back Office</span>
-                    </Button>
-                    <Button
-                      onClick={handleLogout}
-                      className="flex items-center gap-2 border-2 border-black/10 bg-white/10 hover:bg-white/20"
-                    >
-                      <LogOut size={18} />
-                      <span>Logout</span>
-                    </Button>
-                  </div>
-                </div>
-              ) : user ? (
-                <div className="flex items-center gap-4">
-                  <div className="flex items-center gap-2 rounded-lg border-2 border-black/10 bg-white/5 p-2">
-                    <div className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-black/20 bg-gray-200">
-                      <UserCircle className="h-6 w-6 text-gray-700" />
-                    </div>
-                    <div className="flex flex-col">
-                      <p className="text-sm font-medium">Welcome back,</p>
-                      <p className="font-semibold text-white">{user.nom}</p>
-                    </div>
-                  </div>
-                  <Button
-                    onClick={handleLogout}
-                    className="flex items-center gap-2 border-2 border-black/10 bg-white/10 hover:bg-white/20"
-                  >
-                    <LogOut size={18} />
-                    <span>Logout</span>
+        {/* Desktop menu */}
+        <div className="hidden md:flex flex-1 justify-center items-center gap-4">
+          {!user ? (
+            <>
+              <Link href="/users/connexion"><Button variant="ghost">Login</Button></Link>
+              <Link href="/users/inscription"><Button variant="ghost">Sign Up</Button></Link>
+            </>
+          ) : (
+            <div className="flex items-center gap-4">
+              <span className="font-semibold">Welcome, {user.nom}</span>
+              <Button variant="ghost" onClick={handleLogout}>Logout</Button>
+              {user.role === 'ADMIN' && (
+                <Button variant="ghost" onClick={() => router.push('/pages/backoffice')}>
+                  <Settings size={18} className="mr-1" /> Back Office
+                </Button>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Desktop right actions */}
+        <div className="hidden md:flex items-center gap-2">
+          {user && (
+            <Button onClick={() => router.push('/pages/profile')} className="rounded-full bg-white text-gray-800">
+              <UserCircle size={20} />
+            </Button>
+          )}
+          <Link href="/pages/cart">
+            <Button className="relative rounded-full bg-white text-gray-800">
+              <ShoppingBasket size={20} />
+              {cartCount > 0 && (
+                <span className="absolute -right-2 -top-2 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs text-white">
+                  {cartCount}
+                </span>
+              )}
+            </Button>
+          </Link>
+        </div>
+
+        {/* Mobile menu */}
+        <div className="md:hidden">
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button variant="ghost">
+                <Menu size={24} />
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="right" className="w-[260px] bg-customViolet text-white">
+              <SheetHeader>
+                <SheetTitle>Menu</SheetTitle>
+              </SheetHeader>
+              <div className="mt-6 flex flex-col gap-4">
+                {!user ? (
+                  <>
+                    <Link href="/users/connexion"><Button variant="ghost">Login</Button></Link>
+                    <Link href="/users/inscription"><Button variant="ghost">Sign Up</Button></Link>
+                  </>
+                ) : (
+                  <>
+                    <span className="font-semibold">{user.nom}</span>
+                    <Button variant="ghost" onClick={() => router.push('/pages/profile')}>Profile</Button>
+                    {user.role === 'ADMIN' && (
+                      <Button variant="ghost" onClick={() => router.push('/pages/backoffice')}>
+                        Back Office
+                      </Button>
+                    )}
+                    <Button variant="ghost" onClick={handleLogout}>Logout</Button>
+                  </>
+                )}
+                <Link href="/pages/cart">
+                  <Button variant="ghost">
+                    Cart ({cartCount})
                   </Button>
-                </div>
-              ) : (
-                <>
-                  <NavbarItem className="list-none">
-                    <Link href="/users/connexion" passHref>
-                      <Button asChild>
-                        <p>Login</p>
-                      </Button>
-                    </Link>
-                  </NavbarItem>
-                  <NavbarItem className="list-none">
-                    <Link href="/users/inscription" passHref>
-                      <Button asChild>
-                        <p>Sign Up</p>
-                      </Button>
-                    </Link>
-                  </NavbarItem>
-                </>
-              )}
-            </div>
-
-            <div className="flex items-center">
-              {user && (
-                <Button
-                  onClick={() => router.push('/pages/profile')}
-                  className="mr-2 rounded-full bg-white text-gray-800"
-                >
-                  <UserCircle size={24} />
-                </Button>
-              )}
-              <Link href="/pages/recherche">
-                <Button className="mr-1 rounded-full bg-white text-gray-800">
-                  <Search size={24} />
-                </Button>
-              </Link>
-              <Link href="/pages/cart">
-                <Button className="relative rounded-full bg-white pl-2 pr-2 text-gray-800">
-                  <ShoppingBasket />
-                  {cartCount > 0 && (
-                    <span className="absolute -right-2 -top-2 flex h-5 w-5 -translate-y-1/2 translate-x-1/2 items-center justify-center rounded-full bg-red-500 text-xs text-white">
-                      {cartCount}
-                    </span>
-                  )}
-                </Button>
-              </Link>
-            </div>
-          </div>
-        </Navbar>
-      </div>
+                </Link>
+              </div>
+            </SheetContent>
+          </Sheet>
+        </div>
+      </nav>
     </header>
   );
 }
