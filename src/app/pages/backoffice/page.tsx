@@ -8,6 +8,7 @@ import { InputFile } from '@/app/components/backcomp/input-file';
 import CarouselManager from '@/app/components/backcomp/CarouselManager';
 import FallbackButton from '@/app/components/backcomp/FallbackButton';
 import ModifGrilleCategorie from '@/app/components/backcomp/ModifGrilleCategorie';
+import HandleSubUser from '@/app/components/backcomp/HandleSubUser';
 
 export default async function BackofficePage() {
   const cookieStore = await cookies(); // ✅ await ici
@@ -45,7 +46,7 @@ export default async function BackofficePage() {
   }
 
   return (
-    <main className="p-4">
+    <main className="p-4 pb-20">
       <h1 className="text-2xl font-bold mb-6">Administration Panel</h1>
       <Deco />
       <FallbackButton />
@@ -66,6 +67,10 @@ export default async function BackofficePage() {
       </div>
       <div>
         <ModifGrilleCategorie />
+      </div>
+      <h2 className="pr-3">Gestion des abonnements :</h2>
+      <div>
+        <HandleSubUser />
       </div>
     </main>
   );
