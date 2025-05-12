@@ -25,6 +25,9 @@ export async function GET(request: NextRequest) {
           },
         },
       },
+      orderBy: {
+        startDate: 'desc'
+      },
     });
 
     return NextResponse.json(subscriptions);
@@ -34,5 +37,7 @@ export async function GET(request: NextRequest) {
       { error: 'Failed to fetch subscriptions' },
       { status: 500 }
     );
+  } finally {
+    await prisma.$disconnect();
   }
 }

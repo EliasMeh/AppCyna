@@ -5,6 +5,7 @@ import Header from '@/app/communs/Header';
 import Footer from '@/app/communs/Footer';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger, AlertDialogPortal, AlertDialogOverlay } from "@/components/ui/alert-dialog";
 
 interface User {
   id: number;
@@ -25,6 +26,8 @@ interface Subscription {
     nom: string;
     prix: number;
   };
+  cancelAtPeriodEnd: boolean;
+  currentPeriodEnd: string;
 }
 
 export default function ProfilePage() {
@@ -94,10 +97,27 @@ export default function ProfilePage() {
     }
   };
 
+  const handleCancelSubscription = async (subscriptionId: number) => {
+    try {
+      const response = await fetch(`/api/subscriptions/${subscriptionId}/cancel`, {
+        method: 'POST',
+      });
+
+      if (!response.ok) throw new Error('Failed to cancel subscription');
+      
+      // Refresh subscriptions after cancellation
+      if (user) {
+        fetchSubscriptions(user.id);
+      }
+    } catch (error) {
+      console.error('Error cancelling subscription:', error);
+    }
+  };
+
   return (
-    <main>
+    <div className="min-h-screen flex flex-col">
       <Header />
-      <div className="container mx-auto px-4 py-8">
+      <main className="flex-grow container mx-auto px-4 py-8">
         <div className="grid gap-8 md:grid-cols-2">
           {/* Profile Information */}
           <div className="rounded-lg border p-6 shadow-sm">
@@ -181,10 +201,43 @@ export default function ProfilePage() {
                     <p>Status: {sub.status}</p>
                     <p>Price: €{sub.produit.prix}/month</p>
                     <p>Started: {new Date(sub.startDate).toLocaleDateString()}</p>
-                    {sub.endDate && (
-                      <p>
-                        Ends: {new Date(sub.endDate).toLocaleDateString()}
-                      </p>
+                    {sub.cancelAtPeriodEnd ? (
+                      <div className="mt-2">
+                        <p className="text-red-600">
+                          Cancels on {new Date(sub.currentPeriodEnd).toLocaleDateString()}
+                        </p>
+                      </div>
+                    ) : (
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button variant="destructive" className="mt-2">
+                            Cancel Subscription
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle className="text-xl font-semibold">
+                              Cancel Subscription
+                            </AlertDialogTitle>
+                            <AlertDialogDescription>
+                              Your subscription will remain active until the end of the current billing period. 
+                              Continue with cancellation?
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter className="mt-6 flex gap-3 justify-end">
+                            <AlertDialogCancel>
+                              Keep Subscription
+                            </AlertDialogCancel>
+                            <AlertDialogAction 
+                              onClick={() => handleCancelSubscription(sub.id)}
+                              className="bg-red-600 text-white hover:bg-red-700"
+                            >
+                              Yes, Cancel
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                        
                     )}
                   </div>
                 ))}
@@ -194,8 +247,8 @@ export default function ProfilePage() {
             )}
           </div>
         </div>
-      </div>
+      </main>
       <Footer />
-    </main>
+    </div>
   );
 }
