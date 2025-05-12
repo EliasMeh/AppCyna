@@ -37,7 +37,7 @@ export default function ButtonBot() {
                 <Button
                   variant="outline"
                   onClick={() => (window.location.href = '/pages/contact')}
-                  className="w-full justify-start"
+                  className="w-full justify-start text-black"
                 >
                   ✉️ Nous contacter
                 </Button>

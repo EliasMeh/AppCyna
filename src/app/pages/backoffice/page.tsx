@@ -11,7 +11,7 @@ import ModifGrilleCategorie from '@/app/components/backcomp/ModifGrilleCategorie
 import HandleSubUser from '@/app/components/backcomp/HandleSubUser';
 
 export default async function BackofficePage() {
-  const cookieStore = await cookies(); // ✅ await ici
+  const cookieStore = await cookies();
   const token = cookieStore.get('token')?.value;
 
   if (!token) {
@@ -21,9 +21,7 @@ export default async function BackofficePage() {
 
   try {
     const res = await fetch('http://localhost:3000/api/users/me', {
-      headers: {
-        Cookie: `token=${token}`,
-      },
+      headers: { Cookie: `token=${token}` },
       cache: 'no-store',
     });
 
@@ -33,7 +31,6 @@ export default async function BackofficePage() {
     }
 
     const data = await res.json();
-
     if (!data.user || data.user.role !== 'ADMIN') {
       console.log('⛔️ User is not admin:', data.user?.role);
       redirect('/');
@@ -46,32 +43,43 @@ export default async function BackofficePage() {
   }
 
   return (
-    <main className="p-4 pb-20">
-      <h1 className="text-2xl font-bold mb-6">Administration Panel</h1>
-      <Deco />
-      <FallbackButton />
-      <div className="flex flex-wrap">
-        <h2 className="pr-3">Texte dynamique de la page d'accueil :</h2>
+    <main className="p-6 pb-20 space-y-10">
+      <h1 className="text-3xl font-bold text-center mb-10">Administration Panel</h1>
+
+      <section className="space-y-4">
+        <Deco />
+        <FallbackButton />
+      </section>
+
+      <section className="space-y-4">
+        <h2 className="text-xl font-semibold border-b pb-2">Texte dynamique de la page d'accueil</h2>
         <TextInputBack />
-      </div>
-      <div className="flex flex-wrap">
-        <h2 className="pr-3">Liste des produits :</h2>
+      </section>
+
+      <section className="space-y-4">
+        <h2 className="text-xl font-semibold border-b pb-2">Liste des produits</h2>
         <GrilleModifiable />
-      </div>
-      <div className="flex flex-wrap">
-        <h2 className="pr-3">Gestion du Carousel :</h2>
+      </section>
+
+      <section className="space-y-4">
+        <h2 className="text-xl font-semibold border-b pb-2">Gestion du Carousel</h2>
         <CarouselManager />
-      </div>
-      <div>
+      </section>
+
+      <section className="space-y-4">
+        <h2 className="text-xl font-semibold border-b pb-2">Attribution d'image aux services</h2>
         <InputFile />
-      </div>
-      <div>
+      </section>
+
+      <section className="space-y-4">
+        <h2 className="text-xl font-semibold border-b pb-2">Modification de la grille des catégories</h2>
         <ModifGrilleCategorie />
-      </div>
-      <h2 className="pr-3">Gestion des abonnements :</h2>
-      <div>
+      </section>
+
+      <section className="space-y-4">
+        <h2 className="text-xl font-semibold border-b pb-2">Gestion des abonnements</h2>
         <HandleSubUser />
-      </div>
+      </section>
     </main>
   );
 }
