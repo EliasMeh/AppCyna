@@ -43,29 +43,35 @@ export async function POST(request: NextRequest) {
         include: { produit: true }
       });
 
-      // Create subscriptions for each item
-      const subscriptionPromises = cartItems.map(async (item) => {
+      // Generate unique subscription IDs for each item
+      const subscriptionPromises = cartItems.map(async (item, index) => {
+        const uniqueStripeSubId = session.subscription 
+          ? `${session.subscription.toString()}_${index}` 
+          : `sub_${Date.now()}_${index}`;
+
         const subscription = await prisma.subscription.create({
           data: {
             userId: userId,
             produitId: item.produitId,
             startDate: new Date(),
             currentPeriodStart: new Date(),
-            currentPeriodEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
+            currentPeriodEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
             status: 'active',
-            stripeSubId: session.subscription?.toString() || null,
+            stripeSubId: uniqueStripeSubId,
             cancelAtPeriodEnd: false
           }
         });
 
-        // Create payment record
+        // Create payment record with unique payment ID
         await prisma.payment.create({
           data: {
             subscriptionId: subscription.id,
             userId: userId,
             amount: item.produit.prix,
             currency: 'EUR',
-            stripePaymentId: session.payment_intent?.toString() || 'unknown',
+            stripePaymentId: session.payment_intent 
+              ? `${session.payment_intent.toString()}_${index}`
+              : `pi_${Date.now()}_${index}`,
             status: 'succeeded'
           }
         });
@@ -74,7 +80,7 @@ export async function POST(request: NextRequest) {
       });
 
       // Wait for all subscriptions to be created
-      await Promise.all(subscriptionPromises);
+      const createdSubscriptions = await Promise.all(subscriptionPromises);
 
       // Clear the cart
       await prisma.panier.deleteMany({
@@ -83,11 +89,17 @@ export async function POST(request: NextRequest) {
 
       return NextResponse.json({
         success: true,
-        message: 'Payment verified and subscriptions created successfully'
+        message: 'Payment verified and subscriptions created successfully',
+        subscriptions: createdSubscriptions.map(sub => sub.id)
       });
 
     } catch (dbError) {
       console.error('Database error:', dbError);
+      if (typeof dbError === 'object' && dbError !== null && 'code' in dbError && dbError.code === 'P2002') {
+        return NextResponse.json({ 
+          error: 'Duplicate subscription ID detected' 
+        }, { status: 409 });
+      }
       return NextResponse.json({ 
         error: 'Failed to create subscriptions' 
       }, { status: 500 });
@@ -98,5 +110,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       error: error instanceof Error ? error.message : 'Failed to verify payment'
     }, { status: 500 });
+  } finally {
+    await prisma.$disconnect();
   }
 }

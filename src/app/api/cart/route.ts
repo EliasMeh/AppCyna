@@ -15,10 +15,20 @@ export async function POST(request: NextRequest) {
     // Validate parsed values
     if (isNaN(userId) || isNaN(produitId)) {
       return NextResponse.json(
-        {
-          error: 'Invalid user ID or product ID',
-        },
+        { error: 'Invalid user ID or product ID' },
         { status: 400 }
+      );
+    }
+
+    // Check if user exists
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      return NextResponse.json(
+        { error: 'User not found' },
+        { status: 404 }
       );
     }
 
@@ -28,14 +38,15 @@ export async function POST(request: NextRequest) {
     });
 
     if (!product) {
-      return NextResponse.json({ error: 'Product not found' }, { status: 404 });
+      return NextResponse.json(
+        { error: 'Product not found' },
+        { status: 404 }
+      );
     }
 
     if (product.quantite < quantite) {
       return NextResponse.json(
-        {
-          error: 'Not enough stock available',
-        },
+        { error: 'Not enough stock available' },
         { status: 400 }
       );
     }
@@ -50,7 +61,6 @@ export async function POST(request: NextRequest) {
 
     let cartItem;
     if (existingItem) {
-      // Update quantity if item exists
       cartItem = await prisma.panier.update({
         where: { id: existingItem.id },
         data: { quantite: existingItem.quantite + quantite },
@@ -59,7 +69,6 @@ export async function POST(request: NextRequest) {
         },
       });
     } else {
-      // Create new cart item
       cartItem = await prisma.panier.create({
         data: {
           userId,
@@ -75,6 +84,15 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(cartItem);
   } catch (error) {
     console.error('Cart error:', error);
+    
+    // Improved error handling
+    if (error instanceof Error && (error as any).code === 'P2003') {
+      return NextResponse.json(
+        { error: 'Invalid user or product reference' },
+        { status: 400 }
+      );
+    }
+
     return NextResponse.json(
       {
         error: 'Internal server error',
@@ -82,6 +100,8 @@ export async function POST(request: NextRequest) {
       },
       { status: 500 }
     );
+  } finally {
+    await prisma.$disconnect();
   }
 }
 

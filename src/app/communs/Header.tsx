@@ -138,8 +138,8 @@ export default function Header() {
             <div className="flex flex-1 justify-center gap-4">
               {user && user.role === 'ADMIN' ? (
                 <div className="flex items-center gap-4">
-                  <div className="flex items-center gap-2">
-                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-200">
+                  <div className="flex items-center gap-2 rounded-lg border-2 border-black/10 bg-white/5 p-2">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-black/20 bg-gray-200">
                       <UserCircle className="h-6 w-6 text-gray-700" />
                     </div>
                     <div className="flex flex-col">
@@ -150,14 +150,14 @@ export default function Header() {
                   <div className="flex items-center gap-2">
                     <Button
                       onClick={() => router.push('/pages/backoffice')}
-                      className="flex items-center gap-2 bg-white/10 hover:bg-white/20"
+                      className="flex items-center gap-2 border-2 border-black/10 bg-white/10 hover:bg-white/20"
                     >
                       <Settings size={18} />
                       <span>Back Office</span>
                     </Button>
                     <Button
                       onClick={handleLogout}
-                      className="flex items-center gap-2 bg-white/10 hover:bg-white/20"
+                      className="flex items-center gap-2 border-2 border-black/10 bg-white/10 hover:bg-white/20"
                     >
                       <LogOut size={18} />
                       <span>Logout</span>
@@ -166,8 +166,8 @@ export default function Header() {
                 </div>
               ) : user ? (
                 <div className="flex items-center gap-4">
-                  <div className="flex items-center gap-2">
-                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-200">
+                  <div className="flex items-center gap-2 rounded-lg border-2 border-black/10 bg-white/5 p-2">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-black/20 bg-gray-200">
                       <UserCircle className="h-6 w-6 text-gray-700" />
                     </div>
                     <div className="flex flex-col">
@@ -177,7 +177,7 @@ export default function Header() {
                   </div>
                   <Button
                     onClick={handleLogout}
-                    className="flex items-center gap-2 bg-white/10 hover:bg-white/20"
+                    className="flex items-center gap-2 border-2 border-black/10 bg-white/10 hover:bg-white/20"
                   >
                     <LogOut size={18} />
                     <span>Logout</span>
