@@ -7,32 +7,37 @@ interface ImageProps {
   alt: string;
 }
 
-const MyImageComponent = ({ id }: ImageProps) => {
-  const [imageSrc, setImageSrc] = useState<string>('/assets/nuage.png'); // Set default image
+const ImagePre = ({ id, alt }: ImageProps) => {
+  const [imageSrc, setImageSrc] = useState<string>('/assets/nuage.png');
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     async function fetchImage() {
-      try {
-        const response = await fetch(`/api/image/presentation/${id}`);
-        if (!response.ok) {
-          return; // Keep default image
-        }
-        const data = await response.json();
-        console.log('Raw response data:', data);
+      if (!id) return;
 
-        if (data && data.data) {
-          const byteArray = Object.values(data.data) as number[];
-          const uint8Array = new Uint8Array(byteArray);
-          const base64String = btoa(
-            String.fromCharCode.apply(null, Array.from(uint8Array))
-          );
+      try {
+        console.log('Fetching image for product:', id);
+        const response = await fetch(`/api/image/${id}`);
+        
+        if (!response.ok) {
+          console.error('Failed to fetch image:', response.status);
+          return;
+        }
+
+        const images = await response.json();
+        
+        // Check if we got any images back
+        if (images && images.length > 0 && images[0].data) {
+          const imageData = images[0].data;
+          const buffer = Buffer.from(imageData);
+          const base64String = buffer.toString('base64');
           const imageUrl = `data:image/png;base64,${base64String}`;
-          console.log('Created image URL:', imageUrl.substring(0, 50) + '...');
           setImageSrc(imageUrl);
         }
       } catch (error) {
-        console.error('Error fetching image:', error);
-        // Keep default image on error
+        console.error('Error loading image:', error);
+      } finally {
+        setIsLoading(false);
       }
     }
 
@@ -40,22 +45,27 @@ const MyImageComponent = ({ id }: ImageProps) => {
   }, [id]);
 
   return (
-    <div>
+    <div className="relative w-[200px] h-[200px]">
+      {isLoading && (
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="animate-spin h-8 w-8 border-4 border-customViolet rounded-full border-t-transparent" />
+        </div>
+      )}
       <Image
         src={imageSrc}
-        alt="Fetched Image"
+        alt={alt || "Product Image"}
         width={200}
         height={200}
+        className="object-cover w-full h-full"
         unoptimized
-        onError={(e) => {
-          console.error('Error rendering image:', e);
-          setImageSrc('/assets/nuage.png'); // Set fallback on image load error
+        priority
+        onError={() => {
+          console.error('Error rendering image:', id);
+          setImageSrc('/assets/nuage.png');
         }}
-        onLoad={() => console.log('Image rendered successfully')}
-        style={{ objectFit: 'contain' }}
       />
     </div>
   );
 };
 
-export default MyImageComponent;
+export default ImagePre;

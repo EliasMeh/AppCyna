@@ -20,6 +20,7 @@ async function main() {
       prisma.produit.deleteMany(),
       prisma.categorie.deleteMany(),
       prisma.grilleCategorie.deleteMany(),
+      prisma.verificationCode.deleteMany(), // Add this line
       prisma.user.deleteMany(),
     ])
 
