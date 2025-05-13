@@ -1,14 +1,6 @@
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
-
-import TextInputBack from '@/app/components/backcomp/TextInputBack';
-import GrilleModifiable from '@/app/components/backcomp/GrilleModifiable';
-import Deco from '@/app/components/backcomp/Deco';
-import { InputFile } from '@/app/components/backcomp/input-file';
-import CarouselManager from '@/app/components/backcomp/CarouselManager';
-import FallbackButton from '@/app/components/backcomp/FallbackButton';
-import ModifGrilleCategorie from '@/app/components/backcomp/ModifGrilleCategorie';
-import HandleSubUser from '@/app/components/backcomp/HandleSubUser';
+import BackofficeContent from '@/app/pages/backoffice/BackofficeContent';
 
 export default async function BackofficePage() {
   const cookieStore = await cookies();
@@ -37,49 +29,10 @@ export default async function BackofficePage() {
     }
 
     console.log('✅ Admin access granted to:', data.user.email);
+    return <BackofficeContent user={data.user} />;
+    
   } catch (error) {
     console.error('💥 Error verifying admin:', error);
     redirect('/');
   }
-
-  return (
-    <main className="p-6 pb-20 space-y-10">
-      <h1 className="text-3xl font-bold text-center mb-10">Administration Panel</h1>
-
-      <section className="space-y-4">
-        <Deco />
-        <FallbackButton />
-      </section>
-
-      <section className="space-y-4">
-        <h2 className="text-xl font-semibold border-b pb-2">Texte dynamique de la page d'accueil</h2>
-        <TextInputBack />
-      </section>
-
-      <section className="space-y-4">
-        <h2 className="text-xl font-semibold border-b pb-2">Liste des produits</h2>
-        <GrilleModifiable />
-      </section>
-
-      <section className="space-y-4">
-        <h2 className="text-xl font-semibold border-b pb-2">Gestion du Carousel</h2>
-        <CarouselManager />
-      </section>
-
-      <section className="space-y-4">
-        <h2 className="text-xl font-semibold border-b pb-2">Attribution d'image aux services</h2>
-        <InputFile />
-      </section>
-
-      <section className="space-y-4">
-        <h2 className="text-xl font-semibold border-b pb-2">Modification de la grille des catégories</h2>
-        <ModifGrilleCategorie />
-      </section>
-
-      <section className="space-y-4">
-        <h2 className="text-xl font-semibold border-b pb-2">Gestion des abonnements</h2>
-        <HandleSubUser />
-      </section>
-    </main>
-  );
 }

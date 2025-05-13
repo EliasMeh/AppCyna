@@ -2,9 +2,17 @@ import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
+import twilio from 'twilio';
 
 const prisma = new PrismaClient();
 const SECRET_KEY = process.env.JWT_SECRET!; // Assure-toi qu’il est bien dans le fichier .env
+const twilioClient = twilio(
+  process.env.TWILIO_ACCOUNT_SID,
+  process.env.TWILIO_AUTH_TOKEN
+);
+
+// Add DEBUG mode constant
+const DEBUG_MODE = process.env.NODE_ENV === 'development';
 
 export async function POST(request: NextRequest) {
   try {
@@ -29,6 +37,75 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Mot de passe ou email invalide' }, { status: 401 });
     }
 
+    // If user is admin, require 2FA
+    if (user.role === 'ADMIN') {
+      try {
+        // Generate a 6-digit code
+        const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
+        console.log('🔢 Generated verification code for admin');
+        
+        // Store the code first
+        await prisma.verificationCode.create({
+          data: {
+            code: verificationCode,
+            userId: user.id,
+            expiresAt: new Date(Date.now() + 10 * 60 * 1000), // 10 minutes
+          },
+        });
+        console.log('💾 Verification code stored in database');
+
+        // Format the phone number to ensure it's in E.164 format
+        const formattedPhone = user.phone?.startsWith('+') 
+          ? user.phone 
+          : `+33${user.phone?.replace(/^0/, '')}`;
+
+        if (DEBUG_MODE) {
+          // In development, just return the code without sending SMS
+          console.log('🔑 DEBUG MODE: Verification code:', verificationCode);
+          return NextResponse.json({
+            requires2FA: true,
+            userId: user.id,
+            debug: {
+              verificationCode,
+              message: 'Debug mode: SMS not sent'
+            }
+          });
+        } else {
+          // Production mode - actually send SMS
+          try {
+            const message = await twilioClient.messages.create({
+              body: `Votre code de vérification CYNA est: ${verificationCode}`,
+              to: formattedPhone,
+              from: process.env.TWILIO_PHONE_NUMBER,
+            });
+            
+            console.log('📱 SMS sent successfully:', message.sid);
+
+            return NextResponse.json({
+              requires2FA: true,
+              userId: user.id,
+              message: 'Verification code sent successfully'
+            });
+          } catch (twilioError: any) {
+            if (twilioError.code === 21608) {
+              return NextResponse.json({ 
+                error: 'Phone number not verified with Twilio. Please contact support.',
+                requiresVerification: true,
+                details: DEBUG_MODE ? twilioError.message : undefined
+              }, { status: 400 });
+            }
+            throw twilioError;
+          }
+        }
+      } catch (error: any) {
+        console.error('📱 2FA Error:', error);
+        return NextResponse.json({ 
+          error: 'Failed to setup 2FA verification.',
+          details: DEBUG_MODE ? error.message : undefined
+        }, { status: 500 });
+      }
+    }
+
     // ✅ Génération du token avec le rôle inclus
     const token = jwt.sign(
       { userId: user.id, email: user.email, role: user.role },
@@ -38,7 +115,10 @@ export async function POST(request: NextRequest) {
 
     console.log('🔐 JWT created:', token);
 
-    const response = NextResponse.json({ message: 'Login successful', user });
+    const response = NextResponse.json({ 
+      message: 'Login successful', 
+      user,
+      token,});
 
     // ✅ Enregistre le cookie correctement
     response.cookies.set('token', token, {
@@ -53,6 +133,11 @@ export async function POST(request: NextRequest) {
     return response;
   } catch (error) {
     console.error('💥 Login error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ 
+      error: 'An unexpected error occurred during login',
+      details: DEBUG_MODE ? error : undefined
+    }, { status: 500 });
+  } finally {
+    await prisma.$disconnect();
   }
 }
