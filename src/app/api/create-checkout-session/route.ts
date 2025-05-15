@@ -15,7 +15,7 @@ interface CartItem {
 
 const prisma = new PrismaClient();
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-    apiVersion: '2025-03-31.basil',
+  apiVersion: '2025-03-31.basil',
 });
 
 export async function POST(request: NextRequest) {
@@ -25,37 +25,46 @@ export async function POST(request: NextRequest) {
     // Get user data first
     const user = await prisma.user.findUnique({
       where: { id: userId },
-      select: { 
+      select: {
         stripeCustomerId: true,
         email: true,
-        verified: true 
-      }
+        verified: true,
+      },
     });
 
     // Validate request data
     if (!items?.length) {
-      return NextResponse.json({
-        error: 'Invalid Request',
-        details: 'No items provided in the cart',
-        code: 'INVALID_ITEMS'
-      }, { status: 400 });
+      return NextResponse.json(
+        {
+          error: 'Invalid Request',
+          details: 'No items provided in the cart',
+          code: 'INVALID_ITEMS',
+        },
+        { status: 400 }
+      );
     }
 
     if (!userId || !customerEmail) {
-      return NextResponse.json({
-        error: 'Invalid Request',
-        details: 'Missing user information',
-        code: 'INVALID_USER_INFO'
-      }, { status: 400 });
+      return NextResponse.json(
+        {
+          error: 'Invalid Request',
+          details: 'Missing user information',
+          code: 'INVALID_USER_INFO',
+        },
+        { status: 400 }
+      );
     }
 
     // Get or create Stripe customer
     if (!user) {
-      return NextResponse.json({
-        error: 'User Not Found',
-        details: 'Unable to find user record',
-        code: 'USER_NOT_FOUND'
-      }, { status: 404 });
+      return NextResponse.json(
+        {
+          error: 'User Not Found',
+          details: 'Unable to find user record',
+          code: 'USER_NOT_FOUND',
+        },
+        { status: 404 }
+      );
     }
 
     let stripeCustomerId = user.stripeCustomerId;
@@ -64,13 +73,13 @@ export async function POST(request: NextRequest) {
       if (!stripeCustomerId) {
         const customer = await stripe.customers.create({
           email: customerEmail,
-          metadata: { userId: userId.toString() }
+          metadata: { userId: userId.toString() },
         });
         stripeCustomerId = customer.id;
 
         await prisma.user.update({
           where: { id: userId },
-          data: { stripeCustomerId: customer.id }
+          data: { stripeCustomerId: customer.id },
         });
       }
 
@@ -81,7 +90,9 @@ export async function POST(request: NextRequest) {
             name: item.produit?.nom || item.name || 'Product',
             description: 'Monthly subscription',
           },
-          unit_amount: Math.round((item.produit?.prix || item.price || 0) * 100),
+          unit_amount: Math.round(
+            (item.produit?.prix || item.price || 0) * 100
+          ),
           recurring: { interval: 'month' },
         },
         quantity: item.quantite || item.quantity || 1,
@@ -98,25 +109,32 @@ export async function POST(request: NextRequest) {
       });
 
       return NextResponse.json({ sessionId: session.id });
-      
     } catch (stripeError) {
       console.error('Stripe error:', stripeError);
       if (stripeError instanceof Stripe.errors.StripeError) {
-        return NextResponse.json({
-          error: 'Payment Processing Error',
-          details: stripeError.message,
-          code: stripeError.type
-        }, { status: 400 });
+        return NextResponse.json(
+          {
+            error: 'Payment Processing Error',
+            details: stripeError.message,
+            code: stripeError.type,
+          },
+          { status: 400 }
+        );
       }
       throw stripeError; // Re-throw if not a Stripe error
     }
-
   } catch (error) {
     console.error('Server error:', error);
-    return NextResponse.json({
-      error: 'Server Error',
-      details: error instanceof Error ? error.message : 'An unexpected error occurred',
-      code: 'INTERNAL_SERVER_ERROR'
-    }, { status: 500 });
+    return NextResponse.json(
+      {
+        error: 'Server Error',
+        details:
+          error instanceof Error
+            ? error.message
+            : 'An unexpected error occurred',
+        code: 'INTERNAL_SERVER_ERROR',
+      },
+      { status: 500 }
+    );
   }
 }

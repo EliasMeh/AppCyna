@@ -3,12 +3,15 @@ import type React from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 
 export function InputFile() {
   const [fileName, setFileName] = useState<string | null>(null);
   const [file, setFile] = useState<File | null>(null);
-  const [produitId, setProduitId] = useState<number | null>(null);
+  const [produitId, setProduitId] = useState<string>('');
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const numberInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = event.target.files?.[0];
@@ -22,8 +25,22 @@ export function InputFile() {
   };
 
   const handleNumberChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const value = event.target.value ? parseInt(event.target.value) : null;
-    setProduitId(value);
+    setProduitId(event.target.value);
+  };
+
+  const resetForm = () => {
+    // Reset state
+    setFile(null);
+    setFileName(null);
+    setProduitId('');
+
+    // Reset form inputs
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+    if (numberInputRef.current) {
+      numberInputRef.current.value = '';
+    }
   };
 
   const convertToBase64 = (file: File): Promise<string> => {
@@ -40,21 +57,18 @@ export function InputFile() {
   };
 
   const handleUpload = async () => {
-    if (!file) {
-      console.log('No file selected');
-      return;
-    }
+    if (!file) return;
+
+    setIsUploading(true);
 
     try {
       const base64Data = await convertToBase64(file);
-
       const requestBody: { imageData: string; produitId?: number } = {
         imageData: base64Data,
       };
 
-      // Only add produitId if it exists
-      if (produitId !== null) {
-        requestBody.produitId = produitId;
+      if (produitId) {
+        requestBody.produitId = parseInt(produitId);
       }
 
       const response = await fetch('/api/image', {
@@ -72,12 +86,12 @@ export function InputFile() {
       const result = await response.json();
       console.log('Upload successful:', result);
 
-      // Reset form
-      setFile(null);
-      setFileName(null);
-      setProduitId(null);
+      // Reset the form after successful upload
+      resetForm();
     } catch (error) {
       console.error('Error uploading file:', error);
+    } finally {
+      setIsUploading(false);
     }
   };
 
@@ -91,6 +105,8 @@ export function InputFile() {
             type="file"
             onChange={handleFileChange}
             accept="image/*"
+            ref={fileInputRef}
+            disabled={isUploading}
           />
         </div>
         <div className="w-24">
@@ -98,9 +114,12 @@ export function InputFile() {
           <Input
             id="number"
             type="number"
+            value={produitId}
             onChange={handleNumberChange}
             min="1"
             placeholder="Optional"
+            ref={numberInputRef}
+            disabled={isUploading}
           />
         </div>
       </div>
@@ -109,8 +128,12 @@ export function InputFile() {
           Selected file: {fileName}
         </p>
       )}
-      <Button className="mt-2" onClick={handleUpload} disabled={!fileName}>
-        Upload
+      <Button
+        className="mt-2"
+        onClick={handleUpload}
+        disabled={!file || isUploading}
+      >
+        {isUploading ? 'Uploading...' : 'Upload'}
       </Button>
     </div>
   );

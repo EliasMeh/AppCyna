@@ -4,19 +4,20 @@ import Stripe from 'stripe';
 
 const prisma = new PrismaClient();
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2025-03-31.basil'
+  apiVersion: '2025-03-31.basil',
 });
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  props: { params: Promise<{ id: string }> }
 ) {
+  const params = await props.params;
   try {
     const subscriptionId = parseInt(params.id);
 
     const subscription = await prisma.subscription.findUnique({
       where: { id: subscriptionId },
-      include: { user: true }
+      include: { user: true },
     });
 
     if (!subscription) {
@@ -30,7 +31,7 @@ export async function POST(
     if (subscription.stripeSubId) {
       try {
         await stripe.subscriptions.update(subscription.stripeSubId, {
-          cancel_at_period_end: true
+          cancel_at_period_end: true,
         });
       } catch (stripeError) {
         console.error('Stripe cancellation error:', stripeError);
@@ -43,7 +44,7 @@ export async function POST(
       where: { id: subscriptionId },
       data: {
         cancelAtPeriodEnd: true,
-      }
+      },
     });
 
     return NextResponse.json(updatedSubscription);

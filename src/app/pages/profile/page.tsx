@@ -5,7 +5,19 @@ import Header from '@/app/communs/Header';
 import Footer from '@/app/communs/Footer';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger, AlertDialogPortal, AlertDialogOverlay } from "@/components/ui/alert-dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+  AlertDialogPortal,
+  AlertDialogOverlay,
+} from '@/components/ui/alert-dialog';
 
 interface User {
   id: number;
@@ -99,12 +111,15 @@ export default function ProfilePage() {
 
   const handleCancelSubscription = async (subscriptionId: number) => {
     try {
-      const response = await fetch(`/api/subscriptions/${subscriptionId}/cancel`, {
-        method: 'POST',
-      });
+      const response = await fetch(
+        `/api/subscriptions/${subscriptionId}/cancel`,
+        {
+          method: 'POST',
+        }
+      );
 
       if (!response.ok) throw new Error('Failed to cancel subscription');
-      
+
       // Refresh subscriptions after cancellation
       if (user) {
         fetchSubscriptions(user.id);
@@ -115,9 +130,9 @@ export default function ProfilePage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="flex min-h-screen flex-col">
       <Header />
-      <main className="flex-grow container mx-auto px-4 py-8">
+      <main className="container mx-auto flex-grow px-4 py-8">
         <div className="grid gap-8 md:grid-cols-2">
           {/* Profile Information */}
           <div className="rounded-lg border p-6 shadow-sm">
@@ -193,18 +208,18 @@ export default function ProfilePage() {
             {subscriptions.length > 0 ? (
               <div className="space-y-4">
                 {subscriptions.map((sub) => (
-                  <div
-                    key={sub.id}
-                    className="rounded-lg border p-4 shadow-sm"
-                  >
+                  <div key={sub.id} className="rounded-lg border p-4 shadow-sm">
                     <h3 className="font-semibold">{sub.produit.nom}</h3>
                     <p>Status: {sub.status}</p>
                     <p>Price: €{sub.produit.prix}/month</p>
-                    <p>Started: {new Date(sub.startDate).toLocaleDateString()}</p>
+                    <p>
+                      Started: {new Date(sub.startDate).toLocaleDateString()}
+                    </p>
                     {sub.cancelAtPeriodEnd ? (
                       <div className="mt-2">
                         <p className="text-red-600">
-                          Cancels on {new Date(sub.currentPeriodEnd).toLocaleDateString()}
+                          Cancels on{' '}
+                          {new Date(sub.currentPeriodEnd).toLocaleDateString()}
                         </p>
                       </div>
                     ) : (
@@ -220,15 +235,16 @@ export default function ProfilePage() {
                               Cancel Subscription
                             </AlertDialogTitle>
                             <AlertDialogDescription>
-                              Your subscription will remain active until the end of the current billing period. 
-                              Continue with cancellation?
+                              Your subscription will remain active until the end
+                              of the current billing period. Continue with
+                              cancellation?
                             </AlertDialogDescription>
                           </AlertDialogHeader>
-                          <AlertDialogFooter className="mt-6 flex gap-3 justify-end">
+                          <AlertDialogFooter className="mt-6 flex justify-end gap-3">
                             <AlertDialogCancel>
                               Keep Subscription
                             </AlertDialogCancel>
-                            <AlertDialogAction 
+                            <AlertDialogAction
                               onClick={() => handleCancelSubscription(sub.id)}
                               className="bg-red-600 text-white hover:bg-red-700"
                             >
@@ -237,7 +253,6 @@ export default function ProfilePage() {
                           </AlertDialogFooter>
                         </AlertDialogContent>
                       </AlertDialog>
-                        
                     )}
                   </div>
                 ))}

@@ -7,7 +7,7 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
+} from '@/components/ui/select';
 
 interface Produit {
   id: number;
@@ -30,6 +30,16 @@ const GrilleModifiable = () => {
   const [sortField, setSortField] = useState<keyof Produit | null>(null);
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
 
+  // Add new state for the new product
+  const [newProduct, setNewProduct] = useState<Omit<Produit, 'id'>>({
+    nom: '',
+    prix: 0,
+    description: '',
+    quantite: 0,
+    categorieId: 0,
+    placement: 0,
+  });
+
   useEffect(() => {
     // Fetch products
     fetch('/api/produits')
@@ -51,27 +61,106 @@ const GrilleModifiable = () => {
   ) => {
     setProducts(
       products.map((product) =>
-        product.id === id ? { ...product, [field]: value } : product
+        product.id === id
+          ? {
+              ...product,
+              [field]:
+                field === 'placement' ||
+                field === 'prix' ||
+                field === 'quantite'
+                  ? Number(value) || 0
+                  : value,
+            }
+          : product
       )
     );
   };
 
+  const handleNewProductChange = (field: string, value: string | number) => {
+    // Handle empty string for number fields
+    if (
+      typeof value === 'string' &&
+      (field === 'prix' || field === 'quantite')
+    ) {
+      const numberValue = value === '' ? 0 : Number(value);
+      setNewProduct((prev) => ({
+        ...prev,
+        [field]: numberValue,
+      }));
+    } else {
+      setNewProduct((prev) => ({
+        ...prev,
+        [field]: value,
+      }));
+    }
+  };
+
   const handleSubmit = async (product: Produit) => {
     try {
+      // Ensure placement is a number
+      const dataToSend = {
+        ...product,
+        placement:
+          typeof product.placement === 'number' ? product.placement : 0,
+      };
+
       const response = await fetch(`/api/produits/${product.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(product),
+        body: JSON.stringify(dataToSend),
       });
-      if (response.ok) {
-        console.log('Product updated successfully');
-      } else {
-        console.error('Failed to update product');
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to update product');
       }
+
+      const updatedProduct = await response.json();
+
+      // Update local state with the response from server
+      setProducts(
+        products.map((p) => (p.id === updatedProduct.id ? updatedProduct : p))
+      );
+
+      console.log('Product updated successfully');
     } catch (error) {
       console.error('Error updating product:', error);
+      alert(
+        'Failed to update product: ' +
+          (error instanceof Error ? error.message : 'Unknown error')
+      );
+    }
+  };
+
+  const handleCreateProduct = async () => {
+    try {
+      const response = await fetch('/api/produits', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(newProduct),
+      });
+
+      if (response.ok) {
+        const createdProduct = await response.json();
+        setProducts([...products, createdProduct]);
+        // Reset form
+        setNewProduct({
+          nom: '',
+          prix: 0,
+          description: '',
+          quantite: 0,
+          categorieId: 0,
+          placement: 0,
+        });
+      } else {
+        console.error('Failed to create product');
+      }
+    } catch (error) {
+      console.error('Error creating product:', error);
     }
   };
 
@@ -83,9 +172,9 @@ const GrilleModifiable = () => {
     const sortedProducts = [...products].sort((a, b) => {
       if (field === 'categorieId') {
         // Sort by category name instead of ID
-        const catA = categories.find(cat => cat.id === a[field])?.nom || '';
-        const catB = categories.find(cat => cat.id === b[field])?.nom || '';
-        return direction === 'asc' 
+        const catA = categories.find((cat) => cat.id === a[field])?.nom || '';
+        const catB = categories.find((cat) => cat.id === b[field])?.nom || '';
+        return direction === 'asc'
           ? catA.localeCompare(catB)
           : catB.localeCompare(catA);
       }
@@ -140,6 +229,7 @@ const GrilleModifiable = () => {
             <SortHeader field="prix" label="Prix" />
             <SortHeader field="description" label="Description" />
             <SortHeader field="quantite" label="Quantité" />
+            <SortHeader field="placement" label="Placement" />
             <SortHeader field="categorieId" label="Catégorie" />
             <th className="py-2">Actions</th>
           </tr>
@@ -155,7 +245,7 @@ const GrilleModifiable = () => {
                   onChange={(e) =>
                     handleInputChange(product.id, 'nom', e.target.value)
                   }
-                  className="w-full p-1 border rounded"
+                  className="w-full rounded border p-1"
                 />
               </td>
               <td className="border px-4 py-2">
@@ -169,7 +259,7 @@ const GrilleModifiable = () => {
                       parseFloat(e.target.value)
                     )
                   }
-                  className="w-full p-1 border rounded"
+                  className="w-full rounded border p-1"
                 />
               </td>
               <td className="border px-4 py-2">
@@ -179,7 +269,7 @@ const GrilleModifiable = () => {
                   onChange={(e) =>
                     handleInputChange(product.id, 'description', e.target.value)
                   }
-                  className="w-full p-1 border rounded"
+                  className="w-full rounded border p-1"
                 />
               </td>
               <td className="border px-4 py-2">
@@ -193,24 +283,47 @@ const GrilleModifiable = () => {
                       parseInt(e.target.value)
                     )
                   }
-                  className="w-full p-1 border rounded"
+                  className="w-full rounded border p-1"
+                />
+              </td>
+              <td className="border px-4 py-2">
+                <input
+                  type="number"
+                  value={product.placement || ''}
+                  onChange={(e) =>
+                    handleInputChange(
+                      product.id,
+                      'placement',
+                      parseInt(e.target.value)
+                    )
+                  }
+                  min="0"
+                  className="w-full rounded border p-1"
                 />
               </td>
               <td className="border px-4 py-2">
                 <Select
                   value={product.categorieId?.toString()}
                   onValueChange={(value) =>
-                    handleInputChange(product.id, 'categorieId', parseInt(value))
+                    handleInputChange(
+                      product.id,
+                      'categorieId',
+                      parseInt(value)
+                    )
                   }
                 >
                   <SelectTrigger className="w-full">
                     <SelectValue placeholder="Select category">
-                      {categories.find(cat => cat.id === product.categorieId)?.nom || 'Select category'}
+                      {categories.find((cat) => cat.id === product.categorieId)
+                        ?.nom || 'Select category'}
                     </SelectValue>
                   </SelectTrigger>
                   <SelectContent>
                     {categories.map((category) => (
-                      <SelectItem key={category.id} value={category.id.toString()}>
+                      <SelectItem
+                        key={category.id}
+                        value={category.id.toString()}
+                      >
                         {category.nom}
                       </SelectItem>
                     ))}
@@ -227,6 +340,91 @@ const GrilleModifiable = () => {
               </td>
             </tr>
           ))}
+          <tr className="bg-gray-50">
+            <td className="border px-4 py-2">New</td>
+            <td className="border px-4 py-2">
+              <input
+                type="text"
+                value={newProduct.nom}
+                onChange={(e) => handleNewProductChange('nom', e.target.value)}
+                placeholder="Product name"
+                className="w-full rounded border p-1"
+              />
+            </td>
+            <td className="border px-4 py-2">
+              <input
+                type="number"
+                value={newProduct.prix || ''}
+                onChange={(e) => handleNewProductChange('prix', e.target.value)}
+                placeholder="Price"
+                className="w-full rounded border p-1"
+              />
+            </td>
+            <td className="border px-4 py-2">
+              <input
+                type="text"
+                value={newProduct.description}
+                onChange={(e) =>
+                  handleNewProductChange('description', e.target.value)
+                }
+                placeholder="Description"
+                className="w-full rounded border p-1"
+              />
+            </td>
+            <td className="border px-4 py-2">
+              <input
+                type="number"
+                value={newProduct.quantite || ''}
+                onChange={(e) =>
+                  handleNewProductChange('quantite', e.target.value)
+                }
+                placeholder="Quantity"
+                className="w-full rounded border p-1"
+              />
+            </td>
+            <td className="border px-4 py-2">
+              <input
+                type="number"
+                value={newProduct.placement || ''}
+                onChange={(e) =>
+                  handleNewProductChange('placement', e.target.value)
+                }
+                placeholder="Placement"
+                min="0"
+                className="w-full rounded border p-1"
+              />
+            </td>
+            <td className="border px-4 py-2">
+              <Select
+                value={newProduct.categorieId?.toString()}
+                onValueChange={(value) =>
+                  handleNewProductChange('categorieId', parseInt(value))
+                }
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select category" />
+                </SelectTrigger>
+                <SelectContent>
+                  {categories.map((category) => (
+                    <SelectItem
+                      key={category.id}
+                      value={category.id.toString()}
+                    >
+                      {category.nom}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </td>
+            <td className="border px-4 py-2">
+              <button
+                onClick={handleCreateProduct}
+                className="rounded bg-green-500 px-4 py-2 font-bold text-white hover:bg-green-700"
+              >
+                Create
+              </button>
+            </td>
+          </tr>
         </tbody>
       </table>
     </div>

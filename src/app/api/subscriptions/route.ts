@@ -26,7 +26,7 @@ export async function GET(request: NextRequest) {
         },
       },
       orderBy: {
-        startDate: 'desc'
+        startDate: 'desc',
       },
     });
 

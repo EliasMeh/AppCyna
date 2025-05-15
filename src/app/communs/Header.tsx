@@ -4,9 +4,22 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Menu, ShoppingBasket, UserCircle, LogOut, Settings } from 'lucide-react';
+import {
+  Menu,
+  ShoppingBasket,
+  UserCircle,
+  LogOut,
+  Settings,
+  Search,
+} from 'lucide-react';
 import { CART_UPDATED_EVENT } from '@/lib/events';
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from '@/components/ui/sheet';
 
 interface User {
   id: number;
@@ -85,7 +98,8 @@ export default function Header() {
   useEffect(() => {
     const handleCartUpdate = () => updateCartCount();
     window.addEventListener(CART_UPDATED_EVENT, handleCartUpdate);
-    return () => window.removeEventListener(CART_UPDATED_EVENT, handleCartUpdate);
+    return () =>
+      window.removeEventListener(CART_UPDATED_EVENT, handleCartUpdate);
   }, [user]);
 
   const handleLogout = () => {
@@ -99,23 +113,38 @@ export default function Header() {
       <nav className="flex items-center justify-between p-4">
         {/* Logo and name */}
         <Link href="/" className="flex items-center gap-2">
-          <Image src="/assets/cynalogo.png" alt="cynaLogo" width={40} height={40} className="rounded-full" />
+          <Image
+            src="/assets/cynalogo.png"
+            alt="cynaLogo"
+            width={40}
+            height={40}
+            className="rounded-full"
+          />
           <span className="text-xl font-bold">Cyna</span>
         </Link>
 
         {/* Desktop menu */}
-        <div className="hidden md:flex flex-1 justify-center items-center gap-4">
+        <div className="hidden flex-1 items-center justify-center gap-4 md:flex">
           {!user ? (
             <>
-              <Link href="/users/connexion"><Button variant="ghost">Login</Button></Link>
-              <Link href="/users/inscription"><Button variant="ghost">Sign Up</Button></Link>
+              <Link href="/users/connexion">
+                <Button variant="ghost">Login</Button>
+              </Link>
+              <Link href="/users/inscription">
+                <Button variant="ghost">Sign Up</Button>
+              </Link>
             </>
           ) : (
             <div className="flex items-center gap-4">
               <span className="font-semibold">Welcome, {user.nom}</span>
-              <Button variant="ghost" onClick={handleLogout}>Logout</Button>
+              <Button variant="ghost" onClick={handleLogout}>
+                Logout
+              </Button>
               {user.role === 'ADMIN' && (
-                <Button variant="ghost" onClick={() => router.push('/pages/backoffice')}>
+                <Button
+                  variant="ghost"
+                  onClick={() => router.push('/pages/backoffice')}
+                >
                   <Settings size={18} className="mr-1" /> Back Office
                 </Button>
               )}
@@ -124,9 +153,17 @@ export default function Header() {
         </div>
 
         {/* Desktop right actions */}
-        <div className="hidden md:flex items-center gap-2">
+        <div className="hidden items-center gap-2 md:flex">
+          <Link href="/pages/recherche">
+            <Button className="rounded-full bg-white text-gray-800">
+              <Search size={20} />
+            </Button>
+          </Link>
           {user && (
-            <Button onClick={() => router.push('/pages/profile')} className="rounded-full bg-white text-gray-800">
+            <Button
+              onClick={() => router.push('/pages/profile')}
+              className="rounded-full bg-white text-gray-800"
+            >
               <UserCircle size={20} />
             </Button>
           )}
@@ -150,32 +187,53 @@ export default function Header() {
                 <Menu size={24} />
               </Button>
             </SheetTrigger>
-            <SheetContent side="right" className="w-[260px] bg-customViolet text-white">
+            <SheetContent
+              side="right"
+              className="w-[260px] bg-customViolet text-white"
+            >
               <SheetHeader>
                 <SheetTitle>Menu</SheetTitle>
               </SheetHeader>
               <div className="mt-6 flex flex-col gap-4">
+                <Link href="/pages/recherche">
+                  <Button variant="ghost" className="w-full justify-start">
+                    <Search size={18} className="mr-2" />
+                    Search
+                  </Button>
+                </Link>
                 {!user ? (
                   <>
-                    <Link href="/users/connexion"><Button variant="ghost">Login</Button></Link>
-                    <Link href="/users/inscription"><Button variant="ghost">Sign Up</Button></Link>
+                    <Link href="/users/connexion">
+                      <Button variant="ghost">Login</Button>
+                    </Link>
+                    <Link href="/users/inscription">
+                      <Button variant="ghost">Sign Up</Button>
+                    </Link>
                   </>
                 ) : (
                   <>
                     <span className="font-semibold">{user.nom}</span>
-                    <Button variant="ghost" onClick={() => router.push('/pages/profile')}>Profile</Button>
+                    <Button
+                      variant="ghost"
+                      onClick={() => router.push('/pages/profile')}
+                    >
+                      Profile
+                    </Button>
                     {user.role === 'ADMIN' && (
-                      <Button variant="ghost" onClick={() => router.push('/pages/backoffice')}>
+                      <Button
+                        variant="ghost"
+                        onClick={() => router.push('/pages/backoffice')}
+                      >
                         Back Office
                       </Button>
                     )}
-                    <Button variant="ghost" onClick={handleLogout}>Logout</Button>
+                    <Button variant="ghost" onClick={handleLogout}>
+                      Logout
+                    </Button>
                   </>
                 )}
                 <Link href="/pages/cart">
-                  <Button variant="ghost">
-                    Cart ({cartCount})
-                  </Button>
+                  <Button variant="ghost">Cart ({cartCount})</Button>
                 </Link>
               </div>
             </SheetContent>

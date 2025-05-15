@@ -18,24 +18,23 @@ const ImagePre = ({ id, alt }: ImageProps) => {
       try {
         console.log('Fetching image for product:', id);
         const response = await fetch(`/api/image/${id}`);
-        
+
         if (!response.ok) {
           console.error('Failed to fetch image:', response.status);
           return;
         }
 
         const images = await response.json();
-        
+
         // Check if we got any images back
         if (images && images.length > 0 && images[0].data) {
-          const imageData = images[0].data;
-          const buffer = Buffer.from(imageData);
-          const base64String = buffer.toString('base64');
-          const imageUrl = `data:image/png;base64,${base64String}`;
+          // The data is already base64 encoded from the API
+          const imageUrl = `data:image/png;base64,${images[0].data}`;
           setImageSrc(imageUrl);
         }
       } catch (error) {
         console.error('Error loading image:', error);
+        setImageSrc('/assets/nuage.png');
       } finally {
         setIsLoading(false);
       }
@@ -45,20 +44,20 @@ const ImagePre = ({ id, alt }: ImageProps) => {
   }, [id]);
 
   return (
-    <div className="relative w-[200px] h-[200px]">
+    <div className="relative h-full w-full">
       {isLoading && (
         <div className="absolute inset-0 flex items-center justify-center">
-          <div className="animate-spin h-8 w-8 border-4 border-customViolet rounded-full border-t-transparent" />
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-customViolet border-t-transparent" />
         </div>
       )}
       <Image
         src={imageSrc}
-        alt={alt || "Product Image"}
-        width={200}
-        height={200}
-        className="object-cover w-full h-full"
-        unoptimized
+        alt={alt || 'Product Image'}
+        fill
+        sizes="(max-width: 768px) 100vw, 50vw"
+        className="object-contain"
         priority
+        unoptimized
         onError={() => {
           console.error('Error rendering image:', id);
           setImageSrc('/assets/nuage.png');

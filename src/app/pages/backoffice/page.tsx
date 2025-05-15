@@ -30,7 +30,6 @@ export default async function BackofficePage() {
 
     console.log('✅ Admin access granted to:', data.user.email);
     return <BackofficeContent user={data.user} />;
-    
   } catch (error) {
     console.error('💥 Error verifying admin:', error);
     redirect('/');

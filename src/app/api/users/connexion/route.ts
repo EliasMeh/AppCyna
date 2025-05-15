@@ -14,6 +14,17 @@ const twilioClient = twilio(
 // Add DEBUG mode constant
 const DEBUG_MODE = process.env.NODE_ENV === 'development';
 
+// Add these interfaces at the top of the file after the imports
+interface TwilioError extends Error {
+  code?: number;
+  message: string;
+}
+
+interface VerificationError extends Error {
+  message: string;
+  code?: string;
+}
+
 export async function POST(request: NextRequest) {
   try {
     const { email, mdp } = await request.json();
@@ -21,29 +32,40 @@ export async function POST(request: NextRequest) {
 
     if (!email || !mdp) {
       console.log('⚠️ Email or password missing');
-      return NextResponse.json({ error: 'Missing email or password' }, { status: 400 });
+      return NextResponse.json(
+        { error: 'Missing email or password' },
+        { status: 400 }
+      );
     }
 
     const user = await prisma.user.findUnique({ where: { email } });
 
     if (!user) {
       console.log('❌ No user found with that email');
-      return NextResponse.json({ error: 'Mot de passe ou email invalide' }, { status: 401 });
+      return NextResponse.json(
+        { error: 'Mot de passe ou email invalide' },
+        { status: 401 }
+      );
     }
 
     const passwordMatch = await bcrypt.compare(mdp, user.mdp);
     if (!passwordMatch) {
       console.log('❌ Invalid password');
-      return NextResponse.json({ error: 'Mot de passe ou email invalide' }, { status: 401 });
+      return NextResponse.json(
+        { error: 'Mot de passe ou email invalide' },
+        { status: 401 }
+      );
     }
 
     // If user is admin, require 2FA
     if (user.role === 'ADMIN') {
       try {
         // Generate a 6-digit code
-        const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
+        const verificationCode = Math.floor(
+          100000 + Math.random() * 900000
+        ).toString();
         console.log('🔢 Generated verification code for admin');
-        
+
         // Store the code first
         await prisma.verificationCode.create({
           data: {
@@ -55,8 +77,8 @@ export async function POST(request: NextRequest) {
         console.log('💾 Verification code stored in database');
 
         // Format the phone number to ensure it's in E.164 format
-        const formattedPhone = user.phone?.startsWith('+') 
-          ? user.phone 
+        const formattedPhone = user.phone?.startsWith('+')
+          ? user.phone
           : `+33${user.phone?.replace(/^0/, '')}`;
 
         if (DEBUG_MODE) {
@@ -67,8 +89,8 @@ export async function POST(request: NextRequest) {
             userId: user.id,
             debug: {
               verificationCode,
-              message: 'Debug mode: SMS not sent'
-            }
+              message: 'Debug mode: SMS not sent',
+            },
           });
         } else {
           // Production mode - actually send SMS
@@ -78,31 +100,43 @@ export async function POST(request: NextRequest) {
               to: formattedPhone,
               from: process.env.TWILIO_PHONE_NUMBER,
             });
-            
+
             console.log('📱 SMS sent successfully:', message.sid);
 
             return NextResponse.json({
               requires2FA: true,
               userId: user.id,
-              message: 'Verification code sent successfully'
+              message: 'Verification code sent successfully',
             });
-          } catch (twilioError: any) {
-            if (twilioError.code === 21608) {
-              return NextResponse.json({ 
-                error: 'Phone number not verified with Twilio. Please contact support.',
-                requiresVerification: true,
-                details: DEBUG_MODE ? twilioError.message : undefined
-              }, { status: 400 });
+          } catch (twilioError: unknown) {
+            if (
+              twilioError instanceof Error &&
+              (twilioError as TwilioError).code === 21608
+            ) {
+              return NextResponse.json(
+                {
+                  error:
+                    'Phone number not verified with Twilio. Please contact support.',
+                  requiresVerification: true,
+                  details: DEBUG_MODE ? twilioError.message : undefined,
+                },
+                { status: 400 }
+              );
             }
             throw twilioError;
           }
         }
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error('📱 2FA Error:', error);
-        return NextResponse.json({ 
-          error: 'Failed to setup 2FA verification.',
-          details: DEBUG_MODE ? error.message : undefined
-        }, { status: 500 });
+        const errorMessage =
+          error instanceof Error ? error.message : 'Unknown error';
+        return NextResponse.json(
+          {
+            error: 'Failed to setup 2FA verification.',
+            details: DEBUG_MODE ? errorMessage : undefined,
+          },
+          { status: 500 }
+        );
       }
     }
 
@@ -115,10 +149,11 @@ export async function POST(request: NextRequest) {
 
     console.log('🔐 JWT created:', token);
 
-    const response = NextResponse.json({ 
-      message: 'Login successful', 
+    const response = NextResponse.json({
+      message: 'Login successful',
       user,
-      token,});
+      token,
+    });
 
     // ✅ Enregistre le cookie correctement
     response.cookies.set('token', token, {
@@ -129,14 +164,22 @@ export async function POST(request: NextRequest) {
       maxAge: 60 * 60 * 24,
     });
 
-    console.log('✅ Cookie set with token for user:', user.email, '| Role:', user.role);
+    console.log(
+      '✅ Cookie set with token for user:',
+      user.email,
+      '| Role:',
+      user.role
+    );
     return response;
   } catch (error) {
     console.error('💥 Login error:', error);
-    return NextResponse.json({ 
-      error: 'An unexpected error occurred during login',
-      details: DEBUG_MODE ? error : undefined
-    }, { status: 500 });
+    return NextResponse.json(
+      {
+        error: 'An unexpected error occurred during login',
+        details: DEBUG_MODE ? error : undefined,
+      },
+      { status: 500 }
+    );
   } finally {
     await prisma.$disconnect();
   }

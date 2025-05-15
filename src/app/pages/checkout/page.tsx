@@ -39,14 +39,18 @@ interface CheckoutError {
   code: string;
 }
 
-const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
+const stripePromise = loadStripe(
+  process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!
+);
 
 export default function CheckoutPage() {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [detailedError, setDetailedError] = useState<CheckoutError | null>(null);
+  const [detailedError, setDetailedError] = useState<CheckoutError | null>(
+    null
+  );
 
   useEffect(() => {
     const storedUser = localStorage.getItem('user');
@@ -91,7 +95,7 @@ export default function CheckoutPage() {
         setDetailedError({
           error: 'Authentication Required',
           details: 'Please log in to complete your purchase',
-          code: 'AUTH_REQUIRED'
+          code: 'AUTH_REQUIRED',
         });
         return;
       }
@@ -100,9 +104,36 @@ export default function CheckoutPage() {
         setDetailedError({
           error: 'Empty Cart',
           details: 'Your cart is empty',
-          code: 'EMPTY_CART'
+          code: 'EMPTY_CART',
         });
         return;
+      }
+
+      // Check stock availability for all items
+      for (const item of cartItems) {
+        const productId = user ? item.produit?.id : item.productId;
+        const quantity = user ? item.quantite : item.quantity;
+
+        const response = await fetch(`/api/produits/${productId}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            updateStock: true,
+            quantity: quantity,
+          }),
+        });
+
+        if (!response.ok) {
+          const error = await response.json();
+          setDetailedError({
+            error: 'Stock Error',
+            details: `Not enough stock available for product ID ${productId}. Available: ${error.availableQuantity}`,
+            code: 'INSUFFICIENT_STOCK',
+          });
+          return;
+        }
       }
 
       const response = await fetch('/api/create-checkout-session', {
@@ -123,7 +154,7 @@ export default function CheckoutPage() {
         setDetailedError({
           error: 'Checkout Failed',
           details: data.details || 'Failed to create checkout session',
-          code: data.code || 'UNKNOWN_ERROR'
+          code: data.code || 'UNKNOWN_ERROR',
         });
         return;
       }
@@ -141,16 +172,18 @@ export default function CheckoutPage() {
         setDetailedError({
           error: 'Stripe Error',
           details: stripeError.message || 'An unknown error occurred',
-          code: 'STRIPE_REDIRECT_ERROR'
+          code: 'STRIPE_REDIRECT_ERROR',
         });
       }
-
     } catch (error) {
       console.error('Checkout error:', error);
       setDetailedError({
         error: 'System Error',
-        details: error instanceof Error ? error.message : 'An unexpected error occurred',
-        code: 'SYSTEM_ERROR'
+        details:
+          error instanceof Error
+            ? error.message
+            : 'An unexpected error occurred',
+        code: 'SYSTEM_ERROR',
       });
     }
   };
@@ -219,7 +252,8 @@ export default function CheckoutPage() {
             {user ? (
               <div className="space-y-4">
                 <p>
-                  <span className="font-medium">Name:</span> {user.nom} {user.prenom}
+                  <span className="font-medium">Name:</span> {user.nom}{' '}
+                  {user.prenom}
                 </p>
                 <p>
                   <span className="font-medium">Email:</span> {user.email}
@@ -237,7 +271,9 @@ export default function CheckoutPage() {
               onClick={handleCheckout}
               disabled={!user || cartItems.length === 0}
               className={`mt-6 w-full rounded-lg bg-blue-600 p-4 text-white hover:bg-blue-700 ${
-                !user || cartItems.length === 0 ? 'cursor-not-allowed bg-gray-400' : ''
+                !user || cartItems.length === 0
+                  ? 'cursor-not-allowed bg-gray-400'
+                  : ''
               }`}
             >
               Proceed to Payment

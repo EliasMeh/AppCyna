@@ -46,15 +46,12 @@ export async function POST(request: NextRequest) {
         role: true,
         verified: true,
         adresse: true,
-      }
+      },
     });
 
     if (!user) {
       console.log('❌ User not found');
-      return NextResponse.json(
-        { error: 'User not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
     const { mdp: _, ...userWithoutPassword } = user;
@@ -77,9 +74,13 @@ export async function POST(request: NextRequest) {
       maxAge: 60 * 60 * 24, // 24 hours
     });
 
-    console.log('✅ 2FA verification successful for:', user.email, '| Role:', user.role);
+    console.log(
+      '✅ 2FA verification successful for:',
+      user.email,
+      '| Role:',
+      user.role
+    );
     return response;
-
   } catch (error) {
     console.error('💥 2FA verification error:', error);
     return NextResponse.json(

@@ -32,9 +32,12 @@ export default function Search() {
   const [searchTerm, setSearchTerm] = useState('');
   const [results, setResults] = useState<Product[]>([]);
   const [showInStock, setShowInStock] = useState(false);
+  const [priceRange, setPriceRange] = useState({ min: 0, max: 1000 });
+  const [maxPrice, setMaxPrice] = useState(1000); // Store the highest price
 
   useEffect(() => {
     fetchCategories();
+    fetchMaxPrice(); // Add this line
 
     const params = new URLSearchParams(window.location.search);
     const preSelectedCategory = params.get('selectedCategory');
@@ -45,7 +48,7 @@ export default function Search() {
     }
   }, []);
 
-  async function fetchCategories() {  
+  async function fetchCategories() {
     setLoading(true);
     setError(null);
     try {
@@ -61,6 +64,19 @@ export default function Search() {
       );
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function fetchMaxPrice() {
+    try {
+      const response = await fetch('/api/produits');
+      if (!response.ok) throw new Error('Failed to fetch products');
+      const products = await response.json();
+      const highestPrice = Math.max(...products.map((p: Product) => p.prix));
+      setMaxPrice(highestPrice);
+      setPriceRange({ min: 0, max: highestPrice });
+    } catch (error) {
+      console.error('Error fetching max price:', error);
     }
   }
 
@@ -124,10 +140,17 @@ export default function Search() {
                   product.nom
                     .toLowerCase()
                     .includes(searchTerm.toLowerCase()) &&
-                  (!showInStock || product.quantite > 0)
+                  (!showInStock || product.quantite > 0) &&
+                  product.prix >= priceRange.min &&
+                  product.prix <= priceRange.max
               ) || []
         )
-      : results.filter((product) => !showInStock || product.quantite > 0);
+      : results.filter(
+          (product) =>
+            (!showInStock || product.quantite > 0) &&
+            product.prix >= priceRange.min &&
+            product.prix <= priceRange.max
+        );
 
   return (
     <div className="container mx-auto p-4">
@@ -188,6 +211,74 @@ export default function Search() {
                 <label htmlFor="in-stock" className="cursor-pointer text-sm">
                   In Stock Only
                 </label>
+              </div>
+            </div>
+
+            {/* Price Range Filter */}
+            <div className="mt-6 border-t border-gray-200 pt-6">
+              <h2 className="mb-4 text-lg font-bold">Price Range</h2>
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm">€{priceRange.min}</span>
+                  <span className="text-sm">€{priceRange.max}</span>
+                </div>
+                <div className="flex gap-4">
+                  <input
+                    type="range"
+                    min="0"
+                    max={maxPrice}
+                    value={priceRange.min}
+                    onChange={(e) =>
+                      setPriceRange((prev) => ({
+                        ...prev,
+                        min: Math.min(Number(e.target.value), priceRange.max),
+                      }))
+                    }
+                    className="w-full"
+                  />
+                  <input
+                    type="range"
+                    min="0"
+                    max={maxPrice}
+                    value={priceRange.max}
+                    onChange={(e) =>
+                      setPriceRange((prev) => ({
+                        ...prev,
+                        max: Math.max(Number(e.target.value), priceRange.min),
+                      }))
+                    }
+                    className="w-full"
+                  />
+                </div>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="number"
+                    min="0"
+                    max={priceRange.max}
+                    value={priceRange.min}
+                    onChange={(e) =>
+                      setPriceRange((prev) => ({
+                        ...prev,
+                        min: Math.min(Number(e.target.value), prev.max),
+                      }))
+                    }
+                    className="w-full rounded-md border px-2 py-1 text-sm"
+                  />
+                  <span>to</span>
+                  <input
+                    type="number"
+                    min={priceRange.min}
+                    max={maxPrice}
+                    value={priceRange.max}
+                    onChange={(e) =>
+                      setPriceRange((prev) => ({
+                        ...prev,
+                        max: Math.max(Number(e.target.value), prev.min),
+                      }))
+                    }
+                    className="w-full rounded-md border px-2 py-1 text-sm"
+                  />
+                </div>
               </div>
             </div>
           </div>

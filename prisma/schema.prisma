@@ -20,6 +20,11 @@ enum Role {
   MODERATOR
 }
 
+enum BillingFrequency {
+  MONTHLY
+  YEARLY
+}
+
 model User {
   id       Int      @id @default(autoincrement())
   mdp      String
@@ -61,13 +66,17 @@ model Subscription {
   endDate       DateTime?
   status        String    @default("active") // To track subscription status
   stripeSubId   String?   @unique // Store Stripe subscription ID
+  stripeSessionId String? @unique  // Add this field
   currentPeriodStart DateTime @default(now())
   currentPeriodEnd   DateTime
   cancelAtPeriodEnd  Boolean  @default(false)
+  billingFrequency BillingFrequency @default(MONTHLY)
   produit       Produit   @relation(fields: [produitId], references: [id])
   user          User      @relation(fields: [userId], references: [id])
   payments      Payment[] // Opposite relation field for Payment model
+
   @@index([stripeSubId])
+  @@index([stripeSessionId])
 }
 
 model Panier {
@@ -167,4 +176,13 @@ model VerificationCode {
   createdAt DateTime @default(now())
   expiresAt DateTime
   used      Boolean  @default(false)
+}
+
+model Contact {
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String
+  message   String
+  createdAt DateTime @default(now())
+  status    String   @default("pending") // pending, responded, archived
 }

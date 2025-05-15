@@ -5,10 +5,10 @@ const prisma = new PrismaClient();
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { produitId: string } }
+  props: { params: Promise<{ produitId: string }> }
 ) {
+  const params = await props.params;
   try {
-    // Await the params to resolve
     const id = await Promise.resolve(params.produitId);
     const produitId = parseInt(id);
 
@@ -30,7 +30,13 @@ export async function GET(
       return NextResponse.json([], { status: 200 });
     }
 
-    return NextResponse.json(images);
+    // Convert Prisma Bytes to proper format
+    const formattedImages = images.map((image) => ({
+      ...image,
+      data: Buffer.from(image.data).toString('base64'),
+    }));
+
+    return NextResponse.json(formattedImages);
   } catch (error) {
     console.error('Error fetching images:', error);
     return NextResponse.json({ error: 'Server error' }, { status: 500 });

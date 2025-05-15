@@ -31,12 +31,12 @@ const LoginPage = () => {
         setTempUserId(data.userId);
       } else {
         localStorage.setItem('user', JSON.stringify(data.user));
-    
+
         // ✅ AJOUT POUR CORRIGER LE COOKIE
         if (data.token) {
           document.cookie = `token=${data.token}; path=/; max-age=86400`;
         }
-    
+
         if (data.user.role === 'ADMIN') {
           router.push('/pages/backoffice');
         } else {
@@ -44,7 +44,6 @@ const LoginPage = () => {
         }
       }
     }
-    
   };
 
   const handleVerifyCode = async (e: React.FormEvent) => {
@@ -54,9 +53,9 @@ const LoginPage = () => {
     const response = await fetch('/api/users/verify2fa', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ 
+      body: JSON.stringify({
         userId: tempUserId,
-        code: verificationCode 
+        code: verificationCode,
       }),
     });
 
@@ -64,15 +63,14 @@ const LoginPage = () => {
 
     if (response.ok) {
       localStorage.setItem('user', JSON.stringify(data.user));
-    
+
       // ✅ AJOUT ICI AUSSI
       if (data.token) {
         document.cookie = `token=${data.token}; path=/; max-age=86400`;
       }
-    
+
       router.push('/pages/backoffice');
     }
-    
   };
 
   return (
@@ -81,7 +79,7 @@ const LoginPage = () => {
       <div className="mt-10 flex flex-col items-center">
         <h2 className="text-2xl font-bold">Connexion</h2>
         {error && <p className="text-red-500">{error}</p>}
-        
+
         {!showTwoFactor ? (
           <form onSubmit={handleSubmit} className="flex flex-col items-center">
             <input
@@ -115,7 +113,10 @@ const LoginPage = () => {
             </button>
           </form>
         ) : (
-          <form onSubmit={handleVerifyCode} className="flex flex-col items-center">
+          <form
+            onSubmit={handleVerifyCode}
+            className="flex flex-col items-center"
+          >
             <p className="mb-4 text-center text-sm text-gray-600">
               Un code de vérification a été envoyé à votre numéro de téléphone
             </p>

@@ -14,11 +14,14 @@ export default function Home() {
       <Header />
       <div className="pl-2">
         <h1>Page principale</h1>
+        <br></br>
         <Carousel />
+        <br></br>
         <TextDyna />
+        <br></br>
         <Grille />
+        <br></br>
         <GrilleCategorie />
-
       </div>
       <Footer />
     </main>

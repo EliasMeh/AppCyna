@@ -3,6 +3,10 @@ import { NextRequest, NextResponse } from 'next/server';
 
 const prisma = new PrismaClient();
 
+interface PrismaError extends Error {
+  code?: string;
+}
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
@@ -26,10 +30,7 @@ export async function POST(request: NextRequest) {
     });
 
     if (!user) {
-      return NextResponse.json(
-        { error: 'User not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
     // Check if product exists and has stock
@@ -38,10 +39,7 @@ export async function POST(request: NextRequest) {
     });
 
     if (!product) {
-      return NextResponse.json(
-        { error: 'Product not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'Product not found' }, { status: 404 });
     }
 
     if (product.quantite < quantite) {
@@ -84,9 +82,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(cartItem);
   } catch (error) {
     console.error('Cart error:', error);
-    
-    // Improved error handling
-    if (error instanceof Error && (error as any).code === 'P2003') {
+
+    // Improved error handling with proper typing
+    if (error instanceof Error && (error as PrismaError).code === 'P2003') {
       return NextResponse.json(
         { error: 'Invalid user or product reference' },
         { status: 400 }

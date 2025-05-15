@@ -12,9 +12,9 @@ interface CheckoutStatus {
 }
 
 function SuccessPageContent() {
-  const [status, setStatus] = useState<CheckoutStatus>({ 
-    status: 'loading', 
-    message: 'Processing your order...' 
+  const [status, setStatus] = useState<CheckoutStatus>({
+    status: 'loading',
+    message: 'Processing your order...',
   });
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -24,50 +24,58 @@ function SuccessPageContent() {
     if (!sessionId) {
       setStatus({
         status: 'error',
-        message: 'Invalid session ID provided'
+        message: 'Invalid session ID provided',
       });
       return;
     }
 
-    // Verify the checkout session
     const verifyCheckout = async () => {
       try {
-        console.log('Verifying session:', sessionId); // Debug log
+        console.log('Verifying session:', sessionId);
 
         const response = await fetch('/api/verify-checkout', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ 
-            sessionId: sessionId.toString()
+          body: JSON.stringify({
+            sessionId: sessionId.toString(),
           }),
         });
 
         const data = await response.json();
 
         if (!response.ok) {
-          throw new Error(data.error || 'Failed to verify checkout');
+          // Handle specific error cases
+          if (data.code === 'DUPLICATE_SUBSCRIPTION') {
+            setStatus({
+              status: 'success',
+              message: 'Your subscription is already active.',
+            });
+          } else {
+            throw new Error(data.error || 'Failed to verify checkout');
+          }
+          return;
         }
+
+        // Clear cart only on successful new subscription
+        localStorage.removeItem('guestCart');
 
         setStatus({
           status: 'success',
-          message: 'Payment successful! Your subscription has been activated.'
+          message: 'Payment successful! Your subscription has been activated.',
         });
-
-        // Clear cart
-        localStorage.removeItem('guestCart');
 
         // Redirect to home after 5 seconds
         setTimeout(() => {
           router.push('/');
         }, 5000);
-
       } catch (error) {
         console.error('Verification error:', error); // Debug log
         setStatus({
           status: 'error',
-          message: error instanceof Error ? error.message : 'Failed to verify payment'
+          message:
+            error instanceof Error ? error.message : 'Failed to verify payment',
         });
       }
     };
@@ -84,8 +92,12 @@ function SuccessPageContent() {
       <div className="mx-auto max-w-2xl text-center">
         {status.status === 'loading' && (
           <div className="animate-pulse">
-            <h1 className="mb-4 text-2xl font-bold">Processing your order...</h1>
-            <p className="text-gray-600">Please wait while we confirm your payment.</p>
+            <h1 className="mb-4 text-2xl font-bold">
+              Processing your order...
+            </h1>
+            <p className="text-gray-600">
+              Please wait while we confirm your payment.
+            </p>
           </div>
         )}
 
@@ -130,13 +142,17 @@ export default function SuccessPage() {
   return (
     <main>
       <Header />
-      <Suspense 
+      <Suspense
         fallback={
           <div className="container mx-auto px-4 py-8">
             <div className="mx-auto max-w-2xl text-center">
               <div className="animate-pulse">
-                <h1 className="mb-4 text-2xl font-bold">Loading checkout status...</h1>
-                <p className="text-gray-600">Please wait while we load your payment status.</p>
+                <h1 className="mb-4 text-2xl font-bold">
+                  Loading checkout status...
+                </h1>
+                <p className="text-gray-600">
+                  Please wait while we load your payment status.
+                </p>
               </div>
             </div>
           </div>

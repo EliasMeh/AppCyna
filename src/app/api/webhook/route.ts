@@ -4,7 +4,7 @@ import Stripe from 'stripe';
 
 const prisma = new PrismaClient();
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-    apiVersion: '2025-03-31.basil',
+  apiVersion: '2025-03-31.basil',
 });
 
 const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET!;
@@ -44,7 +44,7 @@ export async function POST(request: NextRequest) {
             stripeSubId: session.subscription?.toString() || null,
             currentPeriodStart: new Date(),
             currentPeriodEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-            cancelAtPeriodEnd: false
+            cancelAtPeriodEnd: false,
           },
         })
       )

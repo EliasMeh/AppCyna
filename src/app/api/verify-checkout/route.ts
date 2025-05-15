@@ -11,43 +11,75 @@ export async function POST(request: NextRequest) {
   try {
     const { sessionId } = await request.json();
 
+    // Check for existing subscription first
+    const existingSubscription = await prisma.subscription.findFirst({
+      where: {
+        stripeSessionId: sessionId,
+      },
+    });
+
+    if (existingSubscription) {
+      return NextResponse.json(
+        {
+          code: 'DUPLICATE_SUBSCRIPTION',
+          error: 'This subscription has already been processed',
+        },
+        { status: 409 }
+      );
+    }
+
     // Validate session ID
-    if (!sessionId || typeof sessionId !== 'string' || !sessionId.startsWith('cs_')) {
-      return NextResponse.json({ 
-        error: 'Invalid session ID format' 
-      }, { status: 400 });
+    if (
+      !sessionId ||
+      typeof sessionId !== 'string' ||
+      !sessionId.startsWith('cs_')
+    ) {
+      return NextResponse.json(
+        {
+          error: 'Invalid session ID format',
+        },
+        { status: 400 }
+      );
     }
 
     // Retrieve the checkout session with line items
     const session = await stripe.checkout.sessions.retrieve(sessionId, {
-      expand: ['line_items', 'subscription']
+      expand: ['line_items', 'subscription'],
     });
 
     if (!session) {
-      return NextResponse.json({ 
-        error: 'Session not found' 
-      }, { status: 404 });
+      return NextResponse.json(
+        {
+          error: 'Session not found',
+        },
+        { status: 404 }
+      );
     }
 
     const userId = parseInt(session.metadata?.userId || '0');
     if (!userId) {
-      return NextResponse.json({ 
-        error: 'User information not found' 
-      }, { status: 400 });
+      return NextResponse.json(
+        {
+          error: 'User information not found',
+        },
+        { status: 400 }
+      );
     }
 
     try {
       // Get cart items for the user
       const cartItems = await prisma.panier.findMany({
         where: { userId },
-        include: { produit: true }
+        include: { produit: true },
       });
 
       // Generate unique subscription IDs for each item
       const subscriptionPromises = cartItems.map(async (item, index) => {
-        const uniqueStripeSubId = session.subscription 
-          ? `${session.subscription.toString()}_${index}` 
-          : `sub_${Date.now()}_${index}`;
+        // Create truly unique IDs by combining multiple unique elements
+        const timestamp = Date.now();
+        const randomString = Math.random().toString(36).substring(2, 15);
+        const uniqueStripeSubId = `sub_${timestamp}_${randomString}_${index}`;
+        const uniquePaymentId = `pi_${timestamp}_${randomString}_${index}`;
 
         const subscription = await prisma.subscription.create({
           data: {
@@ -58,8 +90,9 @@ export async function POST(request: NextRequest) {
             currentPeriodEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
             status: 'active',
             stripeSubId: uniqueStripeSubId,
-            cancelAtPeriodEnd: false
-          }
+            stripeSessionId: sessionId,
+            cancelAtPeriodEnd: false,
+          },
         });
 
         // Create payment record with unique payment ID
@@ -69,11 +102,9 @@ export async function POST(request: NextRequest) {
             userId: userId,
             amount: item.produit.prix,
             currency: 'EUR',
-            stripePaymentId: session.payment_intent 
-              ? `${session.payment_intent.toString()}_${index}`
-              : `pi_${Date.now()}_${index}`,
-            status: 'succeeded'
-          }
+            stripePaymentId: uniquePaymentId,
+            status: 'succeeded',
+          },
         });
 
         return subscription;
@@ -84,32 +115,43 @@ export async function POST(request: NextRequest) {
 
       // Clear the cart
       await prisma.panier.deleteMany({
-        where: { userId }
+        where: { userId },
       });
 
       return NextResponse.json({
         success: true,
         message: 'Payment verified and subscriptions created successfully',
-        subscriptions: createdSubscriptions.map(sub => sub.id)
+        subscriptions: createdSubscriptions.map((sub) => sub.id),
       });
-
     } catch (dbError) {
       console.error('Database error:', dbError);
-      if (typeof dbError === 'object' && dbError !== null && 'code' in dbError && dbError.code === 'P2002') {
-        return NextResponse.json({ 
-          error: 'Duplicate subscription ID detected' 
-        }, { status: 409 });
+      if (
+        dbError instanceof Error &&
+        'code' in dbError &&
+        dbError.code === 'P2002'
+      ) {
+        const error = dbError as { code: string; meta?: { target?: string[] } };
+        if (error.meta?.target?.includes('stripeSessionId')) {
+          return NextResponse.json(
+            {
+              error: 'This session has already been processed',
+              code: 'DUPLICATE_SESSION',
+            },
+            { status: 409 }
+          );
+        }
       }
-      return NextResponse.json({ 
-        error: 'Failed to create subscriptions' 
-      }, { status: 500 });
+      throw dbError;
     }
-
   } catch (error) {
     console.error('Verification error:', error);
-    return NextResponse.json({
-      error: error instanceof Error ? error.message : 'Failed to verify payment'
-    }, { status: 500 });
+    return NextResponse.json(
+      {
+        error:
+          error instanceof Error ? error.message : 'Failed to verify payment',
+      },
+      { status: 500 }
+    );
   } finally {
     await prisma.$disconnect();
   }

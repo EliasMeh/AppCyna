@@ -1,7 +1,7 @@
-"use client"
-import React, { useState, useEffect } from 'react'
-import { Input } from '@/components/ui/input'
-import { Button } from '@/components/ui/button'
+'use client';
+import React, { useState, useEffect } from 'react';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 import {
   Table,
   TableBody,
@@ -9,112 +9,126 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table"
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog'
+} from '@/components/ui/table';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
+} from '@/components/ui/select';
 
 interface User {
-  id: number
-  email: string
-  nom: string
-  prenom: string
+  id: number;
+  email: string;
+  nom: string;
+  prenom: string;
 }
 
 interface Subscription {
-  id: number
-  produitId: number
-  startDate: string
-  endDate?: string
-  status: string
-  cancelAtPeriodEnd: boolean
-  currentPeriodEnd: string
+  id: number;
+  produitId: number;
+  startDate: string;
+  endDate?: string;
+  status: string;
+  cancelAtPeriodEnd: boolean;
+  currentPeriodEnd: string;
   produit: {
-    nom: string
-    prix: number
-  }
+    nom: string;
+    prix: number;
+  };
 }
 
 const HandleSubUser = () => {
-  const [users, setUsers] = useState<User[]>([])
-  const [selectedUserId, setSelectedUserId] = useState('')
-  const [subscriptions, setSubscriptions] = useState<Subscription[]>([])
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState('')
+  const [users, setUsers] = useState<User[]>([]);
+  const [selectedUserId, setSelectedUserId] = useState('');
+  const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
 
   // Fetch users when component mounts
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const response = await fetch('/api/users')
-        if (!response.ok) throw new Error('Failed to fetch users')
-        const data = await response.json()
-        setUsers(data)
+        const response = await fetch('/api/users');
+        if (!response.ok) throw new Error('Failed to fetch users');
+        const data = await response.json();
+        setUsers(data);
       } catch (error) {
-        console.error('Error fetching users:', error)
-        setError('Failed to load users')
+        console.error('Error fetching users:', error);
+        setError('Failed to load users');
       }
-    }
+    };
 
-    fetchUsers()
-  }, [])
+    fetchUsers();
+  }, []);
 
   const fetchSubscriptions = async () => {
     if (!selectedUserId) {
-      setError('Please select a user')
-      return
+      setError('Please select a user');
+      return;
     }
 
-    setIsLoading(true)
-    setError('')
+    setIsLoading(true);
+    setError('');
 
     try {
-      const response = await fetch(`/api/subscriptions?userId=${selectedUserId}`)
-      if (!response.ok) throw new Error('Failed to fetch subscriptions')
-      
-      const data = await response.json()
-      setSubscriptions(data)
+      const response = await fetch(
+        `/api/subscriptions?userId=${selectedUserId}`
+      );
+      if (!response.ok) throw new Error('Failed to fetch subscriptions');
+
+      const data = await response.json();
+      setSubscriptions(data);
     } catch (error) {
-      setError('Error fetching subscriptions')
-      console.error('Error:', error)
+      setError('Error fetching subscriptions');
+      console.error('Error:', error);
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const handleCancelSubscription = async (subscriptionId: number) => {
     try {
-      const response = await fetch(`/api/subscriptions/${subscriptionId}/cancel`, {
-        method: 'POST',
-      })
+      const response = await fetch(
+        `/api/subscriptions/${subscriptionId}/cancel`,
+        {
+          method: 'POST',
+        }
+      );
 
-      if (!response.ok) throw new Error('Failed to cancel subscription')
-      
+      if (!response.ok) throw new Error('Failed to cancel subscription');
+
       // Refresh subscriptions list
-      fetchSubscriptions()
+      fetchSubscriptions();
     } catch (error) {
-      console.error('Error cancelling subscription:', error)
-      setError('Failed to cancel subscription')
+      console.error('Error cancelling subscription:', error);
+      setError('Failed to cancel subscription');
     }
-  }
+  };
 
   return (
     <div className="space-y-6 p-4">
       <div className="flex flex-col gap-4">
         <h2 className="text-2xl font-bold">User Subscriptions Management</h2>
-        
-        <div className="flex gap-4 items-end">
+
+        <div className="flex items-end gap-4">
           <div className="flex-1">
-            <label className="block text-sm font-medium mb-2">Select User</label>
-            <Select
-              value={selectedUserId}
-              onValueChange={setSelectedUserId}
-            >
+            <label className="mb-2 block text-sm font-medium">
+              Select User
+            </label>
+            <Select value={selectedUserId} onValueChange={setSelectedUserId}>
               <SelectTrigger className="max-w-xs">
                 <SelectValue placeholder="Select a user" />
               </SelectTrigger>
@@ -127,7 +141,7 @@ const HandleSubUser = () => {
               </SelectContent>
             </Select>
           </div>
-          <Button 
+          <Button
             onClick={fetchSubscriptions}
             disabled={isLoading || !selectedUserId}
           >
@@ -135,9 +149,7 @@ const HandleSubUser = () => {
           </Button>
         </div>
 
-        {error && (
-          <p className="text-red-500">{error}</p>
-        )}
+        {error && <p className="text-red-500">{error}</p>}
 
         {subscriptions.length > 0 && (
           <div className="rounded-md border">
@@ -159,38 +171,38 @@ const HandleSubUser = () => {
                     <TableCell>{sub.id}</TableCell>
                     <TableCell>{sub.produit.nom}</TableCell>
                     <TableCell>
-                      {sub.cancelAtPeriodEnd ? 
-                        <span className="text-red-500">Cancelling</span> : 
+                      {sub.cancelAtPeriodEnd ? (
+                        <span className="text-red-500">Cancelling</span>
+                      ) : (
                         <span className="text-green-500">Active</span>
-                      }
+                      )}
                     </TableCell>
                     <TableCell>
                       {new Date(sub.startDate).toLocaleDateString()}
                     </TableCell>
                     <TableCell>
-                      {sub.endDate ? 
-                        new Date(sub.endDate).toLocaleDateString() : 
-                        '-'
-                      }
+                      {sub.endDate
+                        ? new Date(sub.endDate).toLocaleDateString()
+                        : '-'}
                     </TableCell>
                     <TableCell>€{sub.produit.prix}/month</TableCell>
                     <TableCell>
                       {!sub.cancelAtPeriodEnd && (
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
-                            <Button 
-                              variant="destructive" 
-                              size="sm"
-                            >
+                            <Button variant="destructive" size="sm">
                               Cancel
                             </Button>
                           </AlertDialogTrigger>
-                          <AlertDialogContent className="fixed top-[50%] left-[50%] -translate-x-[50%] -translate-y-[50%] z-[9999] bg-white rounded-lg p-6 w-full max-w-md mx-4">
+                          <AlertDialogContent className="fixed left-[50%] top-[50%] z-[9999] mx-4 w-full max-w-md -translate-x-[50%] -translate-y-[50%] rounded-lg bg-white p-6">
                             <AlertDialogHeader>
-                              <AlertDialogTitle>Cancel Subscription</AlertDialogTitle>
+                              <AlertDialogTitle>
+                                Cancel Subscription
+                              </AlertDialogTitle>
                               <AlertDialogDescription>
-                                Are you sure you want to cancel this subscription? 
-                                The user will maintain access until the end of their billing period.
+                                Are you sure you want to cancel this
+                                subscription? The user will maintain access
+                                until the end of their billing period.
                               </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>
@@ -218,7 +230,7 @@ const HandleSubUser = () => {
         )}
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default HandleSubUser
+export default HandleSubUser;

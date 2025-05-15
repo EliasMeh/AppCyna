@@ -261,7 +261,8 @@ export default function CartPage() {
                 key={user ? item.id : item.productId}
                 className="flex items-center rounded-lg border p-4"
               >
-                <div className="w-24">
+                {/* Image container with fixed dimensions and proper styling */}
+                <div className="relative h-24 w-24 flex-shrink-0 overflow-hidden rounded-md">
                   <ImagePre
                     id={
                       (user ? item.produit?.id : item.productId)?.toString() ||
@@ -270,6 +271,8 @@ export default function CartPage() {
                     alt={user ? item.produit?.nom || '' : item.name || ''}
                   />
                 </div>
+
+                {/* Rest of the item details */}
                 <div className="ml-4 flex-1">
                   <h3 className="font-semibold">
                     {user ? item.produit?.nom : item.name}

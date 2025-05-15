@@ -26,7 +26,9 @@ export async function middleware(req: NextRequest) {
     console.log('🎯 Decoded token:', {
       userId: decoded.userId,
       role: decoded.role,
-      exp: decoded.exp ? new Date(decoded.exp * 1000).toISOString() : 'no expiration'
+      exp: decoded.exp
+        ? new Date(decoded.exp * 1000).toISOString()
+        : 'no expiration',
     });
 
     // Add user info to request headers for downstream use
@@ -49,7 +51,9 @@ export async function middleware(req: NextRequest) {
   } catch (error) {
     console.error('🔒 JWT verification failed:', error);
     // Clear the invalid token
-    const response = NextResponse.redirect(new URL('/users/connexion', req.url));
+    const response = NextResponse.redirect(
+      new URL('/users/connexion', req.url)
+    );
     response.cookies.delete('token');
     return response;
   }
@@ -60,6 +64,6 @@ export const config = {
     '/pages/backoffice',
     '/pages/backoffice/:path*',
     '/api/users/me',
-    '/api/protected/:path*'
-  ]
+    '/api/protected/:path*',
+  ],
 };

@@ -1,14 +1,14 @@
-import { PrismaClient, Role, ImageType } from '@prisma/client'
-import * as bcrypt from 'bcrypt'
-import * as fs from 'fs'
-import * as path from 'path'
+import { PrismaClient, Role, ImageType } from '@prisma/client';
+import * as bcrypt from 'bcrypt';
+import * as fs from 'fs';
+import * as path from 'path';
 
-const prisma = new PrismaClient()
+const prisma = new PrismaClient();
 
 async function main() {
   try {
     // Clean up existing data
-    console.log('Cleaning existing data...')
+    console.log('Cleaning existing data...');
     await prisma.$transaction([
       prisma.payment.deleteMany(),
       prisma.carouselImage.deleteMany(),
@@ -22,10 +22,10 @@ async function main() {
       prisma.grilleCategorie.deleteMany(),
       prisma.verificationCode.deleteMany(), // Add this line
       prisma.user.deleteMany(),
-    ])
+    ]);
 
-    console.log('Creating admin user...')
-    const adminPassword = await bcrypt.hash('admin123', 10)
+    console.log('Creating admin user...');
+    const adminPassword = await bcrypt.hash('admin123', 10);
     const admin = await prisma.user.create({
       data: {
         email: 'admin@example.com',
@@ -36,16 +36,16 @@ async function main() {
         verified: true,
         phone: '+33669489169', // French mobile number in international format
       },
-    })
+    });
 
-    console.log('Creating categories...')
+    console.log('Creating categories...');
     const categories = await Promise.all([
       prisma.categorie.create({ data: { nom: 'Solutions EDR/XDR' } }),
       prisma.categorie.create({ data: { nom: 'Services Managés' } }),
       prisma.categorie.create({ data: { nom: 'Consulting & Audit' } }),
-    ])
+    ]);
 
-    console.log('Creating grille categorie...')
+    console.log('Creating grille categorie...');
     const grilleCategorie = await prisma.grilleCategorie.create({
       data: {
         categorie1Id: categories[0].id,
@@ -53,16 +53,17 @@ async function main() {
         categorie3Id: categories[2].id,
         active: true,
       },
-    })
+    });
 
-    console.log('Creating products...')
+    console.log('Creating products...');
     const products = await Promise.all([
       // EDR/XDR Solutions
       prisma.produit.create({
         data: {
           nom: 'XERI EDR Pro',
           prix: 899.99,
-          description: 'Solution EDR avancée avec détection comportementale et réponse automatisée aux incidents',
+          description:
+            'Solution EDR avancée avec détection comportementale et réponse automatisée aux incidents',
           quantite: 100,
           placement: 1,
           categorieId: categories[0].id,
@@ -72,7 +73,8 @@ async function main() {
         data: {
           nom: 'XERI XDR Enterprise',
           prix: 1499.99,
-          description: 'Plateforme XDR complète avec intégration cloud et analyses avancées',
+          description:
+            'Plateforme XDR complète avec intégration cloud et analyses avancées',
           quantite: 50,
           placement: 2,
           categorieId: categories[0].id,
@@ -136,7 +138,8 @@ async function main() {
         data: {
           nom: 'AUDIT 360',
           prix: 4999.99,
-          description: 'Audit complet de sécurité avec analyse des vulnérabilités',
+          description:
+            'Audit complet de sécurité avec analyse des vulnérabilités',
           quantite: 10,
           placement: 8,
           categorieId: categories[2].id,
@@ -146,7 +149,7 @@ async function main() {
         data: {
           nom: 'PenTest Pro',
           prix: 3499.99,
-          description: 'Tests d\'intrusion approfondis avec rapport détaillé',
+          description: "Tests d'intrusion approfondis avec rapport détaillé",
           quantite: 15,
           placement: 9,
           categorieId: categories[2].id,
@@ -156,7 +159,7 @@ async function main() {
         data: {
           nom: 'RedTeam Elite',
           prix: 5999.99,
-          description: 'Simulation d\'attaque avancée avec équipe rouge dédiée',
+          description: "Simulation d'attaque avancée avec équipe rouge dédiée",
           quantite: 5,
           placement: 10,
           categorieId: categories[2].id,
@@ -206,16 +209,17 @@ async function main() {
         data: {
           nom: 'Incident Response Plan',
           prix: 1499.99,
-          description: 'Développement de plan de réponse aux incidents sur mesure',
+          description:
+            'Développement de plan de réponse aux incidents sur mesure',
           quantite: 25,
           placement: 15,
           categorieId: categories[2].id,
         },
       }),
-    ])
+    ]);
 
-    console.log('Creating sample user...')
-    const userPassword = await bcrypt.hash('user123', 10)
+    console.log('Creating sample user...');
+    const userPassword = await bcrypt.hash('user123', 10);
     const user = await prisma.user.create({
       data: {
         email: 'user@example.com',
@@ -227,18 +231,18 @@ async function main() {
         verified: true,
         // Remove stripeCustomerId - let Stripe create it during checkout
       },
-    })
+    });
 
-    console.log('Creating cart items...')
+    console.log('Creating cart items...');
     await prisma.panier.create({
       data: {
         userId: user.id,
         produitId: products[0].id,
         quantite: 1,
       },
-    })
+    });
 
-    console.log('Creating previous order...')
+    console.log('Creating previous order...');
     await prisma.previousOrder.create({
       data: {
         userId: user.id,
@@ -247,9 +251,9 @@ async function main() {
         prixUnitaire: 29.99,
         prixTotalPasse: 5998, // Stored as cents
       },
-    })
+    });
 
-    console.log('Creating subscription...')
+    console.log('Creating subscription...');
     const subscription = await prisma.subscription.create({
       data: {
         userId: user.id,
@@ -262,9 +266,9 @@ async function main() {
         currentPeriodEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
         cancelAtPeriodEnd: false,
       },
-    })
+    });
 
-    console.log('Creating payment record...')
+    console.log('Creating payment record...');
     await prisma.payment.create({
       data: {
         subscriptionId: subscription.id,
@@ -274,19 +278,19 @@ async function main() {
         stripePaymentId: 'pi_test',
         status: 'succeeded',
       },
-    })
+    });
 
-    console.log('Creating sample text content...')
+    console.log('Creating sample text content...');
     await prisma.text.create({
       data: {
         content: 'Bienvenue sur notre boutique en ligne!',
       },
-    })
+    });
 
-    console.log('Creating sample carousel image...')
-    const sampleImagePath = path.join(__dirname, 'sample-image.jpg')
+    console.log('Creating sample carousel image...');
+    const sampleImagePath = path.join(__dirname, 'sample-image.jpg');
     if (fs.existsSync(sampleImagePath)) {
-      const imageBuffer = fs.readFileSync(sampleImagePath)
+      const imageBuffer = fs.readFileSync(sampleImagePath);
       await prisma.carouselImage.create({
         data: {
           data: imageBuffer,
@@ -295,21 +299,21 @@ async function main() {
           active: true,
           contentType: ImageType.JPEG,
         },
-      })
+      });
     }
 
-    console.log('Database seeded successfully!')
+    console.log('Database seeded successfully!');
   } catch (error) {
-    console.error('Error during seeding:', error)
-    throw error
+    console.error('Error during seeding:', error);
+    throw error;
   }
 }
 
 main()
   .catch((e) => {
-    console.error('Failed to seed DB:', e)
-    process.exit(1)
+    console.error('Failed to seed DB:', e);
+    process.exit(1);
   })
   .finally(async () => {
-    await prisma.$disconnect()
-  })
+    await prisma.$disconnect();
+  });
